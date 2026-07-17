@@ -6,12 +6,16 @@ from ChromaDB as few-shot context.
 """
 from __future__ import annotations
 
+import logging
+
 from pydantic import ValidationError
 
 from models.schemas import StructuredRequirements
 from nodes.state import PipelineState
 from services.azure_openai_client import chat_completion_json
 from services.chroma_client import retrieve_similar_examples
+
+logger = logging.getLogger(__name__)
 
 _SYSTEM_PROMPT = """You are an SAP business analyst assistant. Extract structured \
 functional requirements from a meeting transcript discussing an SAP change request.
@@ -54,7 +58,8 @@ def requirement_extraction(state: PipelineState) -> PipelineState:
     # configured yet during local scaffolding).
     try:
         requirements = StructuredRequirements(**raw_json)
-    except (ValidationError, TypeError):
+    except (ValidationError, TypeError) as exc:
+        logger.warning("Failed to parse LLM output as StructuredRequirements: %s", exc)
         requirements = StructuredRequirements(
             title="Untitled Requirement",
             summary="Requirement extraction failed to parse LLM output.",

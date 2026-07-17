@@ -6,6 +6,8 @@ ADT REST API as INACTIVE in the configured package.
 """
 from __future__ import annotations
 
+import textwrap
+
 from app.config import settings
 from models.schemas import StructuredRequirements
 from nodes.state import PipelineState
@@ -57,7 +59,7 @@ def abap_code_generation(state: PipelineState) -> PipelineState:
         source_code=abap_source,
         package=settings.adt_target_package,
         object_type="PROG",
-        description=f"POC draft: {requirements.title}"[:60],
+        description=textwrap.shorten(f"POC draft: {requirements.title}", width=60, placeholder="..."),
     )
 
     return {

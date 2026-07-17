@@ -38,7 +38,8 @@ class _OfflineHashingEmbeddingFunction(EmbeddingFunction):
         for token in text.lower().split():
             # MD5 is used purely as a fast, deterministic hash-bucketing
             # function here (not for any cryptographic/security purpose).
-            index = int(hashlib.md5(token.encode("utf-8"), usedforsecurity=False).hexdigest(), 16) % _EMBEDDING_DIM
+            digest = hashlib.md5(token.encode("utf-8"), usedforsecurity=False).digest()
+            index = int.from_bytes(digest[:2], "big") % _EMBEDDING_DIM
             vector[index] += 1.0
         return vector
 
