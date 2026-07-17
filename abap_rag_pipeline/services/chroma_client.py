@@ -36,7 +36,9 @@ class _OfflineHashingEmbeddingFunction(EmbeddingFunction):
     def _embed_text(text: str) -> list[float]:
         vector = [0.0] * _EMBEDDING_DIM
         for token in text.lower().split():
-            index = int(hashlib.md5(token.encode("utf-8")).hexdigest(), 16) % _EMBEDDING_DIM
+            # MD5 is used purely as a fast, deterministic hash-bucketing
+            # function here (not for any cryptographic/security purpose).
+            index = int(hashlib.md5(token.encode("utf-8"), usedforsecurity=False).hexdigest(), 16) % _EMBEDDING_DIM
             vector[index] += 1.0
         return vector
 
@@ -90,7 +92,7 @@ def _get_client() -> chromadb.Client:
     return chromadb.PersistentClient(path=settings.chroma_persist_dir)
 
 
-def get_or_create_seeded_collection() -> chromadb.api.models.Collection.Collection:
+def get_or_create_seeded_collection() -> chromadb.Collection:
     """Return the FS/TS example collection, seeding dummy documents if empty.
 
     TODO: replace dummy seed data with a real ingestion job that indexes the

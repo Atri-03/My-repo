@@ -6,6 +6,8 @@ from ChromaDB as few-shot context.
 """
 from __future__ import annotations
 
+from pydantic import ValidationError
+
 from models.schemas import StructuredRequirements
 from nodes.state import PipelineState
 from services.azure_openai_client import chat_completion_json
@@ -52,7 +54,7 @@ def requirement_extraction(state: PipelineState) -> PipelineState:
     # configured yet during local scaffolding).
     try:
         requirements = StructuredRequirements(**raw_json)
-    except Exception:
+    except (ValidationError, TypeError):
         requirements = StructuredRequirements(
             title="Untitled Requirement",
             summary="Requirement extraction failed to parse LLM output.",

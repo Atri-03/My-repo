@@ -97,6 +97,10 @@ async def approve_gate_1(approval: ApprovalRequest) -> dict:
         return {"run_id": run_id, "status": "rejected_at_gate_1"}
 
     try:
+        # `invoke(None, ...)` resumes a LangGraph run from its last checkpoint
+        # for the given thread_id (the update_state call above already staged
+        # the gate 1 approval into that checkpoint) — this is the documented
+        # LangGraph pattern for resuming after an `interrupt_before` pause.
         result = pipeline_graph.invoke(None, config=_thread_config(run_id))
     except GraphInterrupt:
         result = pipeline_graph.get_state(_thread_config(run_id)).values
@@ -118,6 +122,7 @@ async def approve_gate_2(approval: ApprovalRequest) -> dict:
         {"gate_2_approved": approval.approved, "gate_2_comments": approval.comments},
     )
 
+    # Resumes from the checkpointed state (see comment in approve_gate_1).
     result = pipeline_graph.invoke(None, config=_thread_config(run_id))
     status = result.get("status", "unknown")
     upsert_run(run_id, status=status)
