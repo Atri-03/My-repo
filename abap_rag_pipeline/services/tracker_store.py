@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import os
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from app.config import settings
@@ -42,9 +42,9 @@ def _save(data: dict[str, Any]) -> None:
 def upsert_run(run_id: str, **fields: Any) -> dict[str, Any]:
     with _lock:
         data = _load()
-        record = data.get(run_id, {"run_id": run_id, "created_at": datetime.utcnow().isoformat()})
+        record = data.get(run_id, {"run_id": run_id, "created_at": datetime.now(timezone.utc).isoformat()})
         record.update(fields)
-        record["updated_at"] = datetime.utcnow().isoformat()
+        record["updated_at"] = datetime.now(timezone.utc).isoformat()
         data[run_id] = record
         _save(data)
         return record

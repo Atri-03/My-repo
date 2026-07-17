@@ -9,16 +9,18 @@ Endpoints:
 """
 from __future__ import annotations
 
+import logging
 import os
 import uuid
 
 from fastapi import FastAPI, HTTPException, UploadFile
 from langgraph.errors import GraphInterrupt
 
-from app.config import settings
 from app.graph import pipeline_graph
 from models.schemas import ApprovalRequest
 from services.tracker_store import get_run, upsert_run
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="ABAP RAG Agentic Pipeline (POC)",
@@ -66,6 +68,10 @@ async def trigger_pipeline(run_id: str) -> dict:
         result = pipeline_graph.invoke(initial_state, config=_thread_config(run_id))
     except GraphInterrupt:
         result = pipeline_graph.get_state(_thread_config(run_id)).values
+    except Exception as exc:  # noqa: BLE001 - surface any node/LLM/ADT failure as a failed run
+        logger.exception("Pipeline run %s failed during trigger", run_id)
+        upsert_run(run_id, status="failed", error=str(exc))
+        raise HTTPException(status_code=500, detail=f"Pipeline run failed: {exc}") from exc
 
     status = result.get("status", "unknown")
     upsert_run(run_id, status=status)
@@ -104,6 +110,10 @@ async def approve_gate_1(approval: ApprovalRequest) -> dict:
         result = pipeline_graph.invoke(None, config=_thread_config(run_id))
     except GraphInterrupt:
         result = pipeline_graph.get_state(_thread_config(run_id)).values
+    except Exception as exc:  # noqa: BLE001 - surface any node/LLM/ADT failure as a failed run
+        logger.exception("Pipeline run %s failed while resuming past gate 1", run_id)
+        upsert_run(run_id, status="failed", error=str(exc))
+        raise HTTPException(status_code=500, detail=f"Pipeline run failed: {exc}") from exc
 
     status = result.get("status", "unknown")
     upsert_run(run_id, status=status)
@@ -123,7 +133,13 @@ async def approve_gate_2(approval: ApprovalRequest) -> dict:
     )
 
     # Resumes from the checkpointed state (see comment in approve_gate_1).
-    result = pipeline_graph.invoke(None, config=_thread_config(run_id))
+    try:
+        result = pipeline_graph.invoke(None, config=_thread_config(run_id))
+    except Exception as exc:  # noqa: BLE001 - surface any node/LLM/ADT failure as a failed run
+        logger.exception("Pipeline run %s failed while resuming past gate 2", run_id)
+        upsert_run(run_id, status="failed", error=str(exc))
+        raise HTTPException(status_code=500, detail=f"Pipeline run failed: {exc}") from exc
+
     status = result.get("status", "unknown")
     upsert_run(run_id, status=status)
     return {"run_id": run_id, "status": status}
