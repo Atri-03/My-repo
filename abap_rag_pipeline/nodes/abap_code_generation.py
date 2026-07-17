@@ -7,6 +7,7 @@ ADT REST API as INACTIVE in the configured package.
 from __future__ import annotations
 
 import textwrap
+import uuid
 
 from app.config import settings
 from models.schemas import StructuredRequirements
@@ -26,10 +27,13 @@ functional/technical requirements. Include:
 Return ONLY the ABAP source code, no markdown fences, no explanation."""
 
 
-def _generate_object_name(title: str) -> str:
+def _generate_object_name(title: str, run_id: str) -> str:
     slug = "".join(ch for ch in title.upper().replace(" ", "_") if ch.isalnum() or ch == "_")
-    slug = slug[:20] or "PROGRAM"
-    return f"Z_{slug}"
+    slug = slug[:16] or "PROGRAM"
+    # Append a short, deterministic-per-run suffix so object names stay unique
+    # even for empty/short/duplicate titles (ABAP report names allow <= 30 chars).
+    suffix = run_id.replace("-", "")[:6].upper() or uuid.uuid4().hex[:6].upper()
+    return f"Z_{slug}_{suffix}"
 
 
 def _build_user_prompt(requirements: StructuredRequirements, object_name: str) -> str:
@@ -46,7 +50,7 @@ def _build_user_prompt(requirements: StructuredRequirements, object_name: str) -
 
 def abap_code_generation(state: PipelineState) -> PipelineState:
     requirements = StructuredRequirements(**state.get("requirements", {}))
-    object_name = _generate_object_name(requirements.title)
+    object_name = _generate_object_name(requirements.title, state["run_id"])
 
     abap_source = chat_completion(
         _SYSTEM_PROMPT,

@@ -105,8 +105,10 @@ async def approve_gate_1(approval: ApprovalRequest) -> dict:
     try:
         # `invoke(None, ...)` resumes a LangGraph run from its last checkpoint
         # for the given thread_id (the update_state call above already staged
-        # the gate 1 approval into that checkpoint) — this is the documented
-        # LangGraph pattern for resuming after an `interrupt_before` pause.
+        # the gate 1 approval into that checkpoint). Passing `None` (instead
+        # of a new input state) is LangGraph's documented signal to resume an
+        # interrupted graph rather than start a fresh run — see
+        # https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/
         result = pipeline_graph.invoke(None, config=_thread_config(run_id))
     except GraphInterrupt:
         result = pipeline_graph.get_state(_thread_config(run_id)).values

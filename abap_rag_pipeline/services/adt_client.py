@@ -95,6 +95,12 @@ def create_adt_object(
 
     source_response = session.put(
         f"{settings.adt_base_url}/sap/bc/adt/programs/programs/{object_name}/source/main",
+        # TODO: A real ADT client must first acquire an edit lock via
+        # POST .../source/main?_action=LOCK (stateful session,
+        # X-sap-adt-sessiontype: stateful) and pass the returned lockHandle
+        # here. An empty lockHandle works against some sandbox systems but is
+        # not a reliable/safe pattern — wire up the real lock/unlock flow
+        # before using this against a shared development system.
         params={"sap-client": settings.adt_sap_client, "lockHandle": ""},
         headers={
             "X-CSRF-Token": csrf_token,

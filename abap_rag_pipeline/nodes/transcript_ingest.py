@@ -28,6 +28,7 @@ def _chunk_text(text: str, chunk_size: int = _CHUNK_SIZE_CHARS, overlap: int = _
     if len(text) <= chunk_size:
         return [text] if text else []
 
+    overlap = min(overlap, chunk_size - 1)  # guard against overlap >= chunk_size
     chunks: list[str] = []
     start = 0
     while start < len(text):
@@ -35,7 +36,7 @@ def _chunk_text(text: str, chunk_size: int = _CHUNK_SIZE_CHARS, overlap: int = _
         chunks.append(text[start:end])
         if end == len(text):
             break
-        start = end - overlap
+        start = max(end - overlap, start + 1)  # always make forward progress
     return chunks
 
 

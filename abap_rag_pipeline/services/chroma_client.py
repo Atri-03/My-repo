@@ -116,7 +116,11 @@ def get_or_create_seeded_collection() -> chromadb.Collection:
 def retrieve_similar_examples(query_text: str, n_results: int = 2) -> list[str]:
     """Retrieve the most similar past FS/TS documents for few-shot prompting."""
     collection = get_or_create_seeded_collection()
-    n_results = max(1, min(n_results, collection.count() or 1))
+    available = collection.count()
+    if available == 0:
+        return []
+
+    n_results = max(1, min(n_results, available))
     results = collection.query(query_texts=[query_text], n_results=n_results)
     documents = results.get("documents") or [[]]
     return documents[0]
