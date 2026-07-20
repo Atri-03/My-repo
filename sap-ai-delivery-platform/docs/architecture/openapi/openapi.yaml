@@ -1,0 +1,508 @@
+openapi: 3.1.0
+info:
+  title: SAP AI Delivery Platform — Orchestration API
+  version: "1.0.0"
+  description: >
+    REST API for the SAP AI Delivery Platform orchestration layer.
+    All endpoints are tenant-scoped and require an Entra ID bearer token.
+servers:
+  - url: https://api.sap-ai-delivery.example.com/api/v1
+    description: Production (multi-tenant)
+security:
+  - bearerAuth: []
+tags:
+  - name: transcripts
+  - name: requirements
+  - name: functional-specifications
+  - name: technical-specifications
+  - name: reviews
+  - name: workflows
+  - name: knowledge
+  - name: audit
+  - name: prompts
+  - name: config
+  - name: admin
+paths:
+  /transcripts:
+    get:
+      tags: [transcripts]
+      summary: List ingested transcripts (queue view)
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: status
+          in: query
+          schema: { type: string, enum: [INGESTED, PROCESSING, COMPLETED, FAILED] }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Paged list of transcripts
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagedTranscripts' }
+    post:
+      tags: [transcripts]
+      summary: Upload a transcript/BRD/MOM document for ingestion
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+                sourceType: { type: string, enum: [TEAMS_TRANSCRIPT, SHAREPOINT, ONEDRIVE, UPLOAD] }
+                projectId: { type: string, format: uuid }
+      responses:
+        '202':
+          description: Accepted for asynchronous processing
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transcript' }
+
+  /transcripts/{transcriptId}:
+    get:
+      tags: [transcripts]
+      summary: Get transcript detail
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: transcriptId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Transcript detail
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transcript' }
+
+  /requirement-sets/{requirementSetId}:
+    get:
+      tags: [requirements]
+      summary: Get a requirement set
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: requirementSetId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Requirement set
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RequirementSet' }
+
+  /functional-specifications/{fsId}:
+    get:
+      tags: [functional-specifications]
+      summary: Get a functional specification version
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: fsId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Functional specification
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FunctionalSpecification' }
+
+  /functional-specifications/{fsId}/regenerate:
+    post:
+      tags: [functional-specifications]
+      summary: Trigger FS regeneration incorporating review comments
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: fsId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '202':
+          description: Regeneration accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FunctionalSpecification' }
+
+  /technical-specifications/{tsId}:
+    get:
+      tags: [technical-specifications]
+      summary: Get a technical specification version
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: tsId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Technical specification
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TechnicalSpecification' }
+
+  /technical-specifications/{tsId}/regenerate:
+    post:
+      tags: [technical-specifications]
+      summary: Trigger TS regeneration incorporating review comments
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: tsId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '202':
+          description: Regeneration accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TechnicalSpecification' }
+
+  /reviews/{reviewCycleId}/comments:
+    post:
+      tags: [reviews]
+      summary: Add a review comment
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: reviewCycleId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReviewCommentInput' }
+      responses:
+        '201':
+          description: Comment recorded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewComment' }
+
+  /reviews/{reviewCycleId}/decision:
+    post:
+      tags: [reviews]
+      summary: Record an approve/reject/changes-requested decision
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: reviewCycleId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReviewDecisionInput' }
+      responses:
+        '201':
+          description: Decision recorded, workflow advanced or regenerated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewDecision' }
+
+  /workflows/{workflowRunId}:
+    get:
+      tags: [workflows]
+      summary: Get workflow run state and event history
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: workflowRunId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Workflow run detail
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WorkflowRun' }
+
+  /knowledge/search:
+    post:
+      tags: [knowledge]
+      summary: Hybrid/semantic/vector RAG search
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KnowledgeSearchRequest' }
+      responses:
+        '200':
+          description: Ranked results with citations and lineage
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KnowledgeSearchResponse' }
+
+  /audit:
+    get:
+      tags: [audit]
+      summary: Query the audit ledger
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: entityType
+          in: query
+          schema: { type: string }
+        - name: entityId
+          in: query
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Paged audit entries
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagedAuditEntries' }
+
+  /prompts/{agentName}:
+    get:
+      tags: [prompts]
+      summary: List versioned prompt templates for an agent
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: agentName
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Prompt templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/PromptTemplate' }
+
+  /config/tenant:
+    get:
+      tags: [config]
+      summary: Get current tenant configuration (Foundry/Search bindings)
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+      responses:
+        '200':
+          description: Tenant configuration
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TenantConfig' }
+    put:
+      tags: [config]
+      summary: Update tenant configuration (admin only)
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TenantConfig' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TenantConfig' }
+
+  /admin/tenants:
+    get:
+      tags: [admin]
+      summary: List tenants (platform admin only)
+      responses:
+        '200':
+          description: Tenant list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Tenant' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Microsoft Entra ID-issued access token (OIDC)
+  parameters:
+    TenantHeader:
+      name: X-Tenant-Id
+      in: header
+      required: true
+      schema: { type: string, format: uuid }
+    PageParam:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSizeParam:
+      name: pageSize
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+  schemas:
+    Transcript:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        sourceDocumentId: { type: string, format: uuid }
+        meetingDate: { type: string, format: date-time }
+        parsedFormat: { type: string, enum: [TEAMS_TRANSCRIPT, MOM, BRD, PDF, DOCX, TXT, HTML] }
+        status: { type: string }
+    PagedTranscripts:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Transcript' } }
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+    RequirementSet:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        transcriptId: { type: string, format: uuid }
+        version: { type: integer }
+        status: { type: string }
+        requirements:
+          type: array
+          items: { $ref: '#/components/schemas/Requirement' }
+    Requirement:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        type: { type: string, enum: [FUNCTIONAL, NON_FUNCTIONAL, ASSUMPTION, DEPENDENCY] }
+        title: { type: string }
+        description: { type: string }
+        priority: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL] }
+    FunctionalSpecification:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        requirementSetId: { type: string, format: uuid }
+        templateId: { type: string, format: uuid }
+        version: { type: integer }
+        parentVersionId: { type: string, format: uuid, nullable: true }
+        status: { type: string, enum: [DRAFT, IN_REVIEW, APPROVED, REJECTED, SUPERSEDED] }
+        content: { type: object }
+    TechnicalSpecification:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        functionalSpecificationId: { type: string, format: uuid }
+        templateId: { type: string, format: uuid }
+        version: { type: integer }
+        parentVersionId: { type: string, format: uuid, nullable: true }
+        status: { type: string, enum: [DRAFT, IN_REVIEW, APPROVED, REJECTED, SUPERSEDED] }
+        content: { type: object }
+    ReviewCommentInput:
+      type: object
+      required: [comment]
+      properties:
+        comment: { type: string }
+    ReviewComment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        reviewCycleId: { type: string, format: uuid }
+        reviewerId: { type: string }
+        comment: { type: string }
+        createdAt: { type: string, format: date-time }
+    ReviewDecisionInput:
+      type: object
+      required: [decision]
+      properties:
+        decision: { type: string, enum: [APPROVE, REJECT, CHANGES_REQUESTED] }
+    ReviewDecision:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        reviewCycleId: { type: string, format: uuid }
+        decidedBy: { type: string }
+        decision: { type: string, enum: [APPROVE, REJECT, CHANGES_REQUESTED] }
+        decidedAt: { type: string, format: date-time }
+    WorkflowRun:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        transcriptId: { type: string, format: uuid }
+        currentState: { type: string }
+        events:
+          type: array
+          items:
+            type: object
+            properties:
+              fromState: { type: string, nullable: true }
+              toState: { type: string }
+              actor: { type: string }
+              occurredAt: { type: string, format: date-time }
+    KnowledgeSearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query: { type: string }
+        sourceTypes:
+          type: array
+          items: { type: string }
+        top: { type: integer, default: 10 }
+        searchMode: { type: string, enum: [hybrid, semantic, vector, keyword], default: hybrid }
+    KnowledgeSearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              chunkId: { type: string, format: uuid }
+              sourceUri: { type: string }
+              sourceType: { type: string }
+              text: { type: string }
+              score: { type: number }
+              isDeadLink: { type: boolean }
+    PagedAuditEntries:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              entityType: { type: string }
+              entityId: { type: string, format: uuid }
+              action: { type: string }
+              actor: { type: string }
+              occurredAt: { type: string, format: date-time }
+        total: { type: integer }
+    PromptTemplate:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        agentName: { type: string }
+        name: { type: string }
+        version: { type: integer }
+        content: { type: string }
+        isActive: { type: boolean }
+    TenantConfig:
+      type: object
+      properties:
+        foundryEndpoint: { type: string }
+        foundryDeploymentName: { type: string }
+        foundryResourceName: { type: string }
+        authMethod: { type: string, enum: [MANAGED_IDENTITY, API_KEY, SERVICE_PRINCIPAL] }
+        searchServiceName: { type: string }
+        searchIndexPrefix: { type: string }
+        maxRegenerationAttempts: { type: integer }
+    Tenant:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        tier: { type: string, enum: [SHARED, DEDICATED] }
+        status: { type: string, enum: [ACTIVE, SUSPENDED, DEPROVISIONED] }

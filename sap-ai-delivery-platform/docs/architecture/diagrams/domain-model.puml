@@ -1,0 +1,211 @@
+@startuml Domain-Model
+title SAP AI Delivery Platform — Domain Model
+
+class Tenant {
+  +id: UUID
+  +name: string
+  +tier: TenantTier
+  +entraTenantId: string
+  +status: TenantStatus
+}
+
+class Project {
+  +id: UUID
+  +tenantId: UUID
+  +name: string
+  +sapExecutionRepoUrl: string
+}
+
+class SourceDocument {
+  +id: UUID
+  +tenantId: UUID
+  +projectId: UUID
+  +sourceType: SourceType
+  +originUri: string
+  +ingestedAt: datetime
+  +checksum: string
+}
+
+class Transcript {
+  +id: UUID
+  +sourceDocumentId: UUID
+  +meetingDate: datetime
+  +participants: string[]
+  +rawText: string
+  +parsedFormat: ParsedFormat
+}
+
+class RequirementSet {
+  +id: UUID
+  +transcriptId: UUID
+  +version: int
+  +status: RequirementStatus
+}
+
+class Requirement {
+  +id: UUID
+  +requirementSetId: UUID
+  +type: RequirementType
+  +title: string
+  +description: string
+  +priority: Priority
+}
+
+class Entity_ {
+  +id: UUID
+  +requirementSetId: UUID
+  +name: string
+  +attributes: json
+}
+
+class BusinessRule {
+  +id: UUID
+  +requirementSetId: UUID
+  +rule: string
+}
+
+class Risk {
+  +id: UUID
+  +requirementSetId: UUID
+  +description: string
+  +severity: Severity
+}
+
+class FunctionalSpecification {
+  +id: UUID
+  +requirementSetId: UUID
+  +templateId: UUID
+  +version: int
+  +parentVersionId: UUID
+  +status: DocumentStatus
+  +content: json
+  +blobUri: string
+}
+
+class TechnicalSpecification {
+  +id: UUID
+  +functionalSpecificationId: UUID
+  +templateId: UUID
+  +version: int
+  +parentVersionId: UUID
+  +status: DocumentStatus
+  +content: json
+  +blobUri: string
+}
+
+class DocumentTemplate {
+  +id: UUID
+  +tenantId: UUID
+  +type: TemplateType
+  +name: string
+  +version: int
+  +schema: json
+}
+
+class ReviewCycle {
+  +id: UUID
+  +artefactType: ArtefactType
+  +artefactId: UUID
+  +gate: ReviewGate
+  +status: ReviewStatus
+}
+
+class ReviewComment {
+  +id: UUID
+  +reviewCycleId: UUID
+  +reviewerId: UUID
+  +comment: string
+  +createdAt: datetime
+}
+
+class ReviewDecision {
+  +id: UUID
+  +reviewCycleId: UUID
+  +decidedBy: UUID
+  +decision: DecisionType
+  +decidedAt: datetime
+}
+
+class SapExecutionPackage {
+  +id: UUID
+  +technicalSpecificationId: UUID
+  +version: int
+  +status: PackageStatus
+  +payload: json
+  +publishedAt: datetime
+  +sapExecutionRepoRef: string
+}
+
+class WorkflowRun {
+  +id: UUID
+  +tenantId: UUID
+  +transcriptId: UUID
+  +currentState: WorkflowState
+  +startedAt: datetime
+  +completedAt: datetime
+}
+
+class WorkflowEvent {
+  +id: UUID
+  +workflowRunId: UUID
+  +fromState: WorkflowState
+  +toState: WorkflowState
+  +actor: string
+  +occurredAt: datetime
+}
+
+class AuditLogEntry {
+  +id: UUID
+  +tenantId: UUID
+  +entityType: string
+  +entityId: UUID
+  +action: string
+  +actor: string
+  +before: json
+  +after: json
+  +occurredAt: datetime
+}
+
+class KnowledgeSource {
+  +id: UUID
+  +tenantId: UUID
+  +sourceType: KnowledgeSourceType
+  +uri: string
+  +lastIndexedAt: datetime
+  +isDeadLink: boolean
+}
+
+class KnowledgeChunk {
+  +id: UUID
+  +knowledgeSourceId: UUID
+  +chunkIndex: int
+  +text: string
+  +vectorId: string
+}
+
+Tenant "1" -- "*" Project
+Project "1" -- "*" SourceDocument
+SourceDocument "1" -- "0..1" Transcript
+Transcript "1" -- "*" RequirementSet
+RequirementSet "1" -- "*" Requirement
+RequirementSet "1" -- "*" Entity_
+RequirementSet "1" -- "*" BusinessRule
+RequirementSet "1" -- "*" Risk
+RequirementSet "1" -- "*" FunctionalSpecification
+FunctionalSpecification "1" -- "*" TechnicalSpecification
+DocumentTemplate "1" -- "*" FunctionalSpecification
+DocumentTemplate "1" -- "*" TechnicalSpecification
+FunctionalSpecification "1" -- "*" ReviewCycle
+TechnicalSpecification "1" -- "*" ReviewCycle
+ReviewCycle "1" -- "*" ReviewComment
+ReviewCycle "1" -- "*" ReviewDecision
+TechnicalSpecification "1" -- "*" SapExecutionPackage
+Transcript "1" -- "1" WorkflowRun
+WorkflowRun "1" -- "*" WorkflowEvent
+Tenant "1" -- "*" AuditLogEntry
+Tenant "1" -- "*" KnowledgeSource
+KnowledgeSource "1" -- "*" KnowledgeChunk
+FunctionalSpecification "1" -- "0..1" FunctionalSpecification : parentVersion
+TechnicalSpecification "1" -- "0..1" TechnicalSpecification : parentVersion
+
+@enduml

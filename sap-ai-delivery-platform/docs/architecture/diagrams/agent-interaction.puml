@@ -1,0 +1,54 @@
+@startuml Agent-Interaction
+title Agent Interaction Model — Semantic Kernel Orchestration
+
+actor "Ingestion Worker" as Worker
+participant "Orchestrator Agent\n(Process Framework state machine)" as Orchestrator
+participant "Transcript Agent" as Transcript
+participant "Requirement Agent" as Requirement
+participant "FS Agent" as FS
+participant "Review Agent" as Review
+participant "TS Agent" as TS
+participant "Knowledge Agent\n(Enterprise RAG)" as Knowledge
+database "Azure AI Search" as Search
+database "PostgreSQL" as PG
+queue "Service Bus" as Bus
+
+Worker -> Bus : TranscriptIngested event
+Bus -> Orchestrator : consume event
+Orchestrator -> Transcript : parse(transcript|MOM|BRD|PDF|DOCX|TXT|HTML)
+Transcript -> Orchestrator : StructuredTranscript
+Orchestrator -> Requirement : extract(StructuredTranscript)
+Requirement -> Knowledge : retrieve similar past requirements/standards
+Knowledge -> Search : hybrid/vector/semantic query
+Search --> Knowledge : ranked chunks + citations
+Knowledge --> Requirement : context
+Requirement -> Orchestrator : RequirementSet(v1)
+Orchestrator -> FS : generate(RequirementSet, template)
+FS -> Knowledge : retrieve past FS / templates / standards
+FS -> Orchestrator : FunctionalSpecification(draft)
+Orchestrator -> Review : openGate1(FunctionalSpecification)
+Review -> PG : persist ReviewCycle + notify reviewers
+Review -> Orchestrator : decision(APPROVE | CHANGES_REQUESTED)
+
+alt CHANGES_REQUESTED
+  Orchestrator -> FS : regenerate(FunctionalSpecification, comments)
+  FS -> Orchestrator : FunctionalSpecification(v_n+1)
+  Orchestrator -> Review : openGate1(FunctionalSpecification v_n+1)
+else APPROVE
+  Orchestrator -> TS : generate(FunctionalSpecification, template)
+  TS -> Knowledge : retrieve architecture/coding standards, ATC history, past TS
+  TS -> Orchestrator : TechnicalSpecification(draft)
+  Orchestrator -> Review : openGate2(TechnicalSpecification)
+  Review -> PG : persist ReviewCycle + notify reviewers
+  Review -> Orchestrator : decision(APPROVE | CHANGES_REQUESTED)
+  alt CHANGES_REQUESTED
+    Orchestrator -> TS : regenerate(TechnicalSpecification, comments)
+    TS -> Orchestrator : TechnicalSpecification(v_n+1)
+    Orchestrator -> Review : openGate2(TechnicalSpecification v_n+1)
+  else APPROVE
+    Orchestrator -> Orchestrator : buildSapExecutionPackage()
+    Orchestrator -> Bus : SapExecutionPackagePublished event
+  end
+end
+
+@enduml

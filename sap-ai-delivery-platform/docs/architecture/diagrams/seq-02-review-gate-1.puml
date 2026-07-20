@@ -1,0 +1,39 @@
+@startuml Seq-02-Review-Gate-1
+title Sequence 2 — Review Gate 1 (FS) with Regeneration
+
+participant "Reviewer (UI)" as Reviewer
+participant "Orchestration API" as API
+participant "Review Agent" as ReviewAgent
+participant "Orchestrator Agent" as Orchestrator
+participant "FS Agent" as FSA
+database "PostgreSQL" as PG
+
+Orchestrator -> ReviewAgent : open_review(FunctionalSpecification v1, GATE_1_FS)
+ReviewAgent -> PG : insert review_cycle(status=PENDING)
+ReviewAgent -> PG : workflow_event(-> FS_IN_REVIEW)
+Reviewer -> API : GET /functional-specifications/{fsId}
+API --> Reviewer : FS content
+Reviewer -> API : POST /reviews/{reviewCycleId}/comments
+API -> ReviewAgent : record_comment(comment)
+ReviewAgent -> PG : insert review_comment
+Reviewer -> API : POST /reviews/{reviewCycleId}/decision {CHANGES_REQUESTED}
+API -> ReviewAgent : record_decision(CHANGES_REQUESTED)
+ReviewAgent -> PG : insert review_decision
+ReviewAgent -> Orchestrator : decision=CHANGES_REQUESTED
+alt regeneration_count < max_attempts
+  Orchestrator -> FSA : regenerate_fs(FunctionalSpecification v1, comments)
+  FSA -> PG : insert functional_specification (v2, parent=v1)
+  FSA --> Orchestrator : FunctionalSpecification(v2)
+  Orchestrator -> ReviewAgent : open_review(FunctionalSpecification v2, GATE_1_FS)
+else max_attempts exceeded
+  Orchestrator -> PG : workflow_event(-> ESCALATED)
+end
+
+... reviewer approves v2 ...
+Reviewer -> API : POST /reviews/{reviewCycleId2}/decision {APPROVE}
+API -> ReviewAgent : record_decision(APPROVE)
+ReviewAgent -> PG : insert review_decision, update review_cycle(status=APPROVED)
+ReviewAgent -> Orchestrator : decision=APPROVE
+Orchestrator -> PG : workflow_event(-> FS_APPROVED)
+
+@enduml

@@ -1,0 +1,60 @@
+@startuml RAG-Architecture
+title Enterprise RAG Architecture — Knowledge Agent
+
+skinparam componentStyle rectangle
+
+component "Knowledge Sources" as Sources {
+  [Past FS/TS]
+  [Past BRDs]
+  [Past Projects]
+  [Coding Standards]
+  [Architecture Standards]
+  [Naming Standards]
+  [SAP Standards]
+  [Review History]
+  [ATC History]
+  [Lessons Learned]
+}
+
+component "Ingestion & Indexing Worker" as Worker {
+  [Connector: SharePoint/OneDrive/Teams\n(Microsoft Graph)]
+  [Document Parser\n(PDF/DOCX/HTML/TXT)]
+  [Chunker\n(semantic chunking, overlap)]
+  [Embedding Generator\n(Azure AI Foundry embeddings)]
+  [Dead Link Checker]
+  [Lineage Tagger]
+}
+
+database "Azure AI Search" as Search {
+  [Hybrid Index\n(BM25 + vector fields)]
+  [Semantic Ranker]
+  [Metadata Filters\n(tenant, sourceType, version, date)]
+}
+
+database "PostgreSQL" as PG {
+  [knowledge_source]
+  [knowledge_chunk]
+}
+
+component "Knowledge Agent" as Agent {
+  [search_documents()]
+  [get_lineage()]
+  [check_dead_links()]
+}
+
+component "Consumers" as Consumers {
+  [FS Agent]
+  [TS Agent]
+  [RAG Search UI Screen]
+}
+
+Sources --> Worker : poll / webhook
+Worker --> PG : upsert source + chunk metadata
+Worker --> Search : upsert vector + text + metadata fields
+Worker --> Worker : detect dead links -> flag is_dead_link
+Agent --> Search : hybrid/semantic/vector query + metadata filter
+Search --> Agent : ranked results + citations
+Agent --> PG : resolve lineage (source -> chunk -> version)
+Consumers --> Agent : search_documents(query, filters)
+
+@enduml

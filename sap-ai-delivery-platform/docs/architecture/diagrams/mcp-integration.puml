@@ -1,0 +1,46 @@
+@startuml MCP-Integration
+title MCP Integration Architecture
+
+skinparam componentStyle rectangle
+
+component "Orchestrator Agent /\nAgent Runtime\n(Semantic Kernel, MCP client)" as SKClient
+component "IDE Coding Agents\n(e.g., in SAP Execution Repository)" as IDEAgent
+
+component "Knowledge Search MCP Server" as McpKnowledge {
+  [search_documents]
+  [get_lineage]
+  [list_sources]
+  [check_dead_links]
+}
+
+component "Artefact MCP Server" as McpArtefact {
+  [get_transcript]
+  [get_requirement_set]
+  [get_fs]
+  [get_ts]
+  [list_versions]
+}
+
+component "Workflow MCP Server" as McpWorkflow {
+  [get_workflow_state]
+  [submit_review_decision]
+  [list_active_runs]
+}
+
+database "Azure AI Search" as Search
+database "PostgreSQL" as PG
+component "Orchestration API\n(FastAPI, internal)" as API
+
+SKClient --> McpKnowledge : MCP (stdio/in-process)
+SKClient --> McpArtefact : MCP (stdio/in-process)
+SKClient --> McpWorkflow : MCP (stdio/in-process)
+IDEAgent --> McpKnowledge : MCP (SSE/HTTP, Entra ID token)
+IDEAgent --> McpArtefact : MCP (SSE/HTTP, Entra ID token)
+
+McpKnowledge --> Search : query
+McpKnowledge --> PG : lineage metadata
+McpArtefact --> API : authenticated internal call
+McpArtefact --> PG : direct read (read replica)
+McpWorkflow --> API : authenticated internal call
+
+@enduml

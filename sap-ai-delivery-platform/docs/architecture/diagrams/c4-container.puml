@@ -1,0 +1,46 @@
+@startuml C4-Container
+!include <C4/C4_Container>
+
+title SAP AI Delivery Platform — Container Diagram
+
+Person(user, "Business User / Reviewer / Admin")
+
+System_Boundary(platform, "SAP AI Delivery Platform") {
+  Container(spa, "Web Application", "React, TypeScript, Fluent UI", "Dashboard, queues, review/approval screens, RAG search, admin portal")
+  Container(api, "Orchestration API", "FastAPI (Python), Uvicorn/Gunicorn", "REST + WebSocket API, tenant resolution, RBAC enforcement")
+  Container(orchestrator, "Orchestrator Agent", "Semantic Kernel Process Framework", "Coordinates Transcript/Requirement/FS/Review/TS/Knowledge agents")
+  Container(agents, "Agent Runtime", "Semantic Kernel plugins (Python)", "Transcript, Requirement, FS, Review, TS, Knowledge agents")
+  Container(mcpsrv, "MCP Servers", "Python (MCP SDK)", "Expose search, artefact, workflow tools to agents/IDEs")
+  ContainerDb(pg, "Operational Database", "Azure Database for PostgreSQL", "Tenants, transcripts, requirements, FS/TS, reviews, audit, prompts, config")
+  ContainerDb(blob, "Artefact Store", "Azure Blob Storage", "Raw transcripts, generated DOCX/PDF, execution packages")
+  Container(worker, "Ingestion & Indexing Workers", "Python, Azure Functions / Container Apps Jobs", "Graph connectors, embedding generation, index writes")
+  ContainerQueue(bus, "Message Bus", "Azure Service Bus", "Ingestion events, workflow events, regeneration requests")
+}
+
+System_Ext(search, "Azure AI Search", "Hybrid/vector/semantic index")
+System_Ext(foundry, "Azure AI Foundry", "GPT-5.5 chat + embeddings")
+System_Ext(entra, "Microsoft Entra ID", "AuthN/AuthZ")
+System_Ext(graph, "Microsoft Graph", "Teams/SharePoint/OneDrive")
+System_Ext(sap_exec_repo, "SAP Execution Repository")
+
+Rel(user, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "REST/JSON, WebSocket")
+Rel(spa, entra, "Sign-in", "OIDC (MSAL.js)")
+Rel(api, entra, "Validate JWT", "OIDC")
+Rel(api, pg, "Reads/writes", "SQL (asyncpg/SQLAlchemy)")
+Rel(api, bus, "Publishes workflow events", "AMQP")
+Rel(api, orchestrator, "Invokes workflow steps", "In-process / gRPC")
+Rel(orchestrator, agents, "Delegates to", "Semantic Kernel function calls")
+Rel(agents, mcpsrv, "Invokes tools", "MCP (stdio/SSE)")
+Rel(agents, foundry, "Chat completion", "HTTPS/REST")
+Rel(agents, search, "Retrieval", "HTTPS/REST")
+Rel(worker, graph, "Reads transcripts/documents", "Graph API")
+Rel(worker, bus, "Consumes ingestion events", "AMQP")
+Rel(worker, search, "Writes embeddings/index docs", "HTTPS/REST")
+Rel(worker, blob, "Stores raw & derived files", "HTTPS")
+Rel(api, blob, "Reads/writes artefacts", "HTTPS")
+Rel(mcpsrv, sap_exec_repo, "Publishes execution package", "REST/repository_dispatch")
+Rel(api, sap_exec_repo, "Publishes execution package (alt.)", "REST")
+
+SHOW_LEGEND()
+@enduml

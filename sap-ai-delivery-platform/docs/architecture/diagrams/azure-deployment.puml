@@ -1,0 +1,69 @@
+@startuml Azure-Deployment
+title Azure Deployment Architecture — Multi-Tenant
+
+skinparam componentStyle rectangle
+
+cloud "Azure Front Door\n(WAF, global routing)" as AFD
+
+node "Resource Group: rg-sapaidp-shared-<env>" {
+  component "Static Web App / App Service\n(React SPA)" as SPA
+  component "Container Apps Environment" as CAE {
+    component "API Container App\n(FastAPI, autoscale)" as API
+    component "Orchestrator Container App\n(Semantic Kernel Process)" as Orchestrator
+    component "Agent Runtime Container App(s)" as Agents
+    component "MCP Servers Container App" as MCP
+    component "Ingestion Worker Jobs\n(KEDA-scaled on queue depth)" as Workers
+  }
+  database "Azure Database for PostgreSQL\nFlexible Server (HA, read replica)" as PG
+  queue "Azure Service Bus\n(topics: ingestion, workflow, regeneration)" as Bus
+  component "Azure Web PubSub\n(WebSocket fan-out)" as PubSub
+  folder "Azure Blob Storage\n(transcripts, artefacts, execution packages)" as Blob
+  component "Azure Key Vault\n(per-tenant secret namespace)" as KV
+  component "Azure Monitor / App Insights" as Monitor
+}
+
+node "Resource Group: rg-sapaidp-ai-<env>" {
+  component "Azure AI Foundry Project\n(GPT-5.5 deployment)" as Foundry
+  database "Azure AI Search\n(shared + dedicated indexes)" as Search
+}
+
+node "Resource Group: rg-sapaidp-tenant-<tenantId>\n(DEDICATED tier only)" {
+  database "Dedicated PostgreSQL schema / instance" as DedicatedPG
+  database "Dedicated Azure AI Search index" as DedicatedSearch
+}
+
+cloud "Microsoft Entra ID" as Entra
+cloud "Microsoft Graph\n(Teams / SharePoint / OneDrive)" as Graph
+cloud "SAP Execution Repository\n(external)" as SapRepo
+
+actor "User" as User
+
+User --> AFD
+AFD --> SPA
+SPA --> API : HTTPS + ******
+SPA --> Entra : OIDC sign-in
+API --> Entra : validate JWT
+API --> PG
+API --> Bus
+API --> Blob
+API --> PubSub
+Orchestrator --> Bus
+Orchestrator --> Agents
+Agents --> Foundry : Managed Identity
+Agents --> Search : Managed Identity
+Agents --> MCP
+Workers --> Graph : Managed Identity / app-only Graph permissions
+Workers --> Bus
+Workers --> Search
+Workers --> Blob
+API --> KV : Managed Identity
+Agents --> KV : Managed Identity
+MCP --> SapRepo : publish execution package
+API --> Monitor
+Orchestrator --> Monitor
+Agents --> Monitor
+Workers --> Monitor
+API --> DedicatedPG : dedicated tenants only
+Agents --> DedicatedSearch : dedicated tenants only
+
+@enduml
