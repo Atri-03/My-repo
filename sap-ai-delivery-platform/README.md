@@ -28,16 +28,27 @@ architecture artefacts are under [`docs/architecture/`](docs/architecture/README
 - MCP integration architecture
 - End-to-end sequence diagrams
 
+## Phase 2 Status
+
+Phase 2 delivers the production-ready backend: 11 independent FastAPI
+microservices (SQLAlchemy models, Alembic migrations, Pydantic schemas,
+CRUD API endpoints, Dockerfiles, unit + integration tests) plus a root
+`docker-compose.yml`. See [`services/README.md`](services/README.md) for
+details, and [`docs/architecture/openapi/services/`](docs/architecture/openapi/services)
+for the generated OpenAPI schema of every service.
+
 ## Repository Layout
 
 ```
 sap-ai-delivery-platform/
 ├── backend/          FastAPI orchestration API, workflow engine, audit service
+├── services/          Phase 2: 11 independent FastAPI microservices (see services/README.md)
 ├── agents/            Semantic Kernel agent implementations
 ├── frontend/          React + TypeScript + Fluent UI application
 ├── mcp/                MCP servers exposing platform + SAP execution capabilities to agents/tools
 ├── shared/             Shared contracts (JSON Schema/Pydantic), prompt templates
 ├── infra/              Bicep/Terraform IaC and deployment scripts
+├── docker-compose.yml  Brings up PostgreSQL + all 11 backend microservices
 └── docs/architecture/  Phase 1 architecture artefacts (this phase's deliverables)
 ```
 
