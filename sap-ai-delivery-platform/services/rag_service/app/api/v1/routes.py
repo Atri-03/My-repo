@@ -1,14 +1,28 @@
 """API routes."""
-from typing import List
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.knowledge_source_types import KNOWLEDGE_SOURCE_TYPES
 from app.db.base import get_db
 from app.db import models
 from app import schemas
 
 router = APIRouter()
+
+
+@router.get("/knowledge-source-types", tags=["knowledge-sources"])
+def list_knowledge_source_types() -> Dict[str, List[Dict[str, Any]]]:
+    """List the Enterprise Knowledge Brain's documented knowledge categories.
+
+    `KnowledgeSource.source_type` remains free-form (new categories can be
+    ingested without a migration), but this endpoint surfaces the canonical
+    catalogue - Past BRDs/FS/TS/RAP/CDS/Fiori, review comments, approved
+    architect decisions, naming standards, ATC findings, and reusable
+    components - for the Knowledge Management UI.
+    """
+    return {"source_types": KNOWLEDGE_SOURCE_TYPES}
 
 
 @router.post("/knowledge-sources", response_model=schemas.KnowledgeSourceRead, status_code=status.HTTP_201_CREATED, tags=["knowledge-sources"])

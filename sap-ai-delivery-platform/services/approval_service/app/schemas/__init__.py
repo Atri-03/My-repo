@@ -54,3 +54,78 @@ class SapExecutionPackageRead(BaseModel):
     published_at: Optional[datetime] = None
 
 
+class ApprovalGateDefinitionCreate(BaseModel):
+    tenant_id: str
+    gate_key: str
+    name: str
+    description: Optional[str] = None
+    sequence_order: int = 1
+    entity_type: str
+    required_role: str
+    allow_self_approval: bool = False
+    is_active: bool = True
+
+
+class ApprovalGateDefinitionUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    sequence_order: Optional[int] = None
+    entity_type: Optional[str] = None
+    required_role: Optional[str] = None
+    allow_self_approval: Optional[bool] = None
+    is_active: Optional[bool] = None
+
+
+class ApprovalGateDefinitionRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    tenant_id: str
+    gate_key: str
+    name: str
+    description: Optional[str] = None
+    sequence_order: int
+    entity_type: str
+    required_role: str
+    allow_self_approval: bool
+    is_active: bool
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class GateApprovalRequestCreate(BaseModel):
+    tenant_id: str
+    gate_key: str
+    entity_type: str
+    entity_id: str
+    workflow_run_id: Optional[str] = None
+    requested_by: str
+    requested_by_role: Optional[str] = None
+
+
+class GateApprovalDecide(BaseModel):
+    decided_by: str
+    decided_by_role: str
+    decision: str = Field(..., description="APPROVED | REJECTED | CHANGES_REQUESTED")
+    decision_comments: Optional[str] = None
+
+
+class GateApprovalRequestRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    tenant_id: str
+    gate_key: str
+    entity_type: str
+    entity_id: str
+    workflow_run_id: Optional[str] = None
+    requested_by: str
+    requested_by_role: Optional[str] = None
+    status: str
+    decided_by: Optional[str] = None
+    decided_by_role: Optional[str] = None
+    decision_comments: Optional[str] = None
+    sod_violation: bool
+    created_at: Optional[datetime] = None
+    decided_at: Optional[datetime] = None
+
