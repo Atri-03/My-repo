@@ -669,13 +669,13 @@
         }
       }
     },
-    "/api/v1/requirement-entitys": {
+    "/api/v1/requirement-entities": {
       "post": {
         "tags": [
-          "requirement-entitys"
+          "requirement-entities"
         ],
         "summary": "Create Requirement Entity",
-        "operationId": "create_requirement_entity_api_v1_requirement_entitys_post",
+        "operationId": "create_requirement_entity_api_v1_requirement_entities_post",
         "requestBody": {
           "required": true,
           "content": {
@@ -711,10 +711,10 @@
       },
       "get": {
         "tags": [
-          "requirement-entitys"
+          "requirement-entities"
         ],
         "summary": "List Requirement Entity",
-        "operationId": "list_requirement_entity_api_v1_requirement_entitys_get",
+        "operationId": "list_requirement_entity_api_v1_requirement_entities_get",
         "parameters": [
           {
             "name": "skip",
@@ -747,7 +747,7 @@
                   "items": {
                     "$ref": "#/components/schemas/RequirementEntityRead"
                   },
-                  "title": "Response List Requirement Entity Api V1 Requirement Entitys Get"
+                  "title": "Response List Requirement Entity Api V1 Requirement Entities Get"
                 }
               }
             }
@@ -765,13 +765,13 @@
         }
       }
     },
-    "/api/v1/requirement-entitys/{item_id}": {
+    "/api/v1/requirement-entities/{item_id}": {
       "get": {
         "tags": [
-          "requirement-entitys"
+          "requirement-entities"
         ],
         "summary": "Get Requirement Entity",
-        "operationId": "get_requirement_entity_api_v1_requirement_entitys__item_id__get",
+        "operationId": "get_requirement_entity_api_v1_requirement_entities__item_id__get",
         "parameters": [
           {
             "name": "item_id",
@@ -808,10 +808,10 @@
       },
       "patch": {
         "tags": [
-          "requirement-entitys"
+          "requirement-entities"
         ],
         "summary": "Update Requirement Entity",
-        "operationId": "update_requirement_entity_api_v1_requirement_entitys__item_id__patch",
+        "operationId": "update_requirement_entity_api_v1_requirement_entities__item_id__patch",
         "parameters": [
           {
             "name": "item_id",
@@ -858,10 +858,10 @@
       },
       "delete": {
         "tags": [
-          "requirement-entitys"
+          "requirement-entities"
         ],
         "summary": "Delete Requirement Entity",
-        "operationId": "delete_requirement_entity_api_v1_requirement_entitys__item_id__delete",
+        "operationId": "delete_requirement_entity_api_v1_requirement_entities__item_id__delete",
         "parameters": [
           {
             "name": "item_id",

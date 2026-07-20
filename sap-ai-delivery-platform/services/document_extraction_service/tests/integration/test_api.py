@@ -75,25 +75,25 @@ def test_requirement_risk_crud_flow(client):
 
 def test_requirement_entity_crud_flow(client):
     payload = {"requirement_set_id": "sample", "name": "sample", "attributes": {}}
-    resp = client.post("/api/v1/requirement-entitys", json=payload)
+    resp = client.post("/api/v1/requirement-entities", json=payload)
     assert resp.status_code == 201, resp.text
     created = resp.json()
     item_id = created["id"]
 
-    resp = client.get("/api/v1/requirement-entitys")
+    resp = client.get("/api/v1/requirement-entities")
     assert resp.status_code == 200
     assert any(item['id'] == item_id for item in resp.json())
 
-    resp = client.get(f"/api/v1/requirement-entitys/{item_id}")
+    resp = client.get(f"/api/v1/requirement-entities/{item_id}")
     assert resp.status_code == 200
 
-    resp = client.patch(f"/api/v1/requirement-entitys/{item_id}", json={})
+    resp = client.patch(f"/api/v1/requirement-entities/{item_id}", json={})
     assert resp.status_code == 200
 
-    resp = client.delete(f"/api/v1/requirement-entitys/{item_id}")
+    resp = client.delete(f"/api/v1/requirement-entities/{item_id}")
     assert resp.status_code == 204
 
-    resp = client.get(f"/api/v1/requirement-entitys/{item_id}")
+    resp = client.get(f"/api/v1/requirement-entities/{item_id}")
     assert resp.status_code == 404
 
 

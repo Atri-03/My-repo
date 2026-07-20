@@ -143,7 +143,7 @@ def delete_requirement_risk(item_id: str, db: Session = Depends(get_db)):
     return None
 
 
-@router.post("/requirement-entitys", response_model=schemas.RequirementEntityRead, status_code=status.HTTP_201_CREATED, tags=["requirement-entitys"])
+@router.post("/requirement-entities", response_model=schemas.RequirementEntityRead, status_code=status.HTTP_201_CREATED, tags=["requirement-entities"])
 def create_requirement_entity(payload: schemas.RequirementEntityCreate, db: Session = Depends(get_db)):
     obj = models.RequirementEntity(**payload.model_dump(exclude_none=True))
     db.add(obj)
@@ -152,12 +152,12 @@ def create_requirement_entity(payload: schemas.RequirementEntityCreate, db: Sess
     return obj
 
 
-@router.get("/requirement-entitys", response_model=List[schemas.RequirementEntityRead], tags=["requirement-entitys"])
+@router.get("/requirement-entities", response_model=List[schemas.RequirementEntityRead], tags=["requirement-entities"])
 def list_requirement_entity(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db.query(models.RequirementEntity).offset(skip).limit(limit).all()
 
 
-@router.get("/requirement-entitys/{item_id}", response_model=schemas.RequirementEntityRead, tags=["requirement-entitys"])
+@router.get("/requirement-entities/{item_id}", response_model=schemas.RequirementEntityRead, tags=["requirement-entities"])
 def get_requirement_entity(item_id: str, db: Session = Depends(get_db)):
     obj = db.get(models.RequirementEntity, item_id)
     if obj is None:
@@ -165,7 +165,7 @@ def get_requirement_entity(item_id: str, db: Session = Depends(get_db)):
     return obj
 
 
-@router.patch("/requirement-entitys/{item_id}", response_model=schemas.RequirementEntityRead, tags=["requirement-entitys"])
+@router.patch("/requirement-entities/{item_id}", response_model=schemas.RequirementEntityRead, tags=["requirement-entities"])
 def update_requirement_entity(item_id: str, payload: schemas.RequirementEntityUpdate, db: Session = Depends(get_db)):
     obj = db.get(models.RequirementEntity, item_id)
     if obj is None:
@@ -177,7 +177,7 @@ def update_requirement_entity(item_id: str, payload: schemas.RequirementEntityUp
     return obj
 
 
-@router.delete("/requirement-entitys/{item_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["requirement-entitys"])
+@router.delete("/requirement-entities/{item_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["requirement-entities"])
 def delete_requirement_entity(item_id: str, db: Session = Depends(get_db)):
     obj = db.get(models.RequirementEntity, item_id)
     if obj is None:

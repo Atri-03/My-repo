@@ -6,13 +6,13 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/v1/audit-log-entrys": {
+    "/api/v1/audit-log-entries": {
       "post": {
         "tags": [
-          "audit-log-entrys"
+          "audit-log-entries"
         ],
         "summary": "Create Audit Log Entry",
-        "operationId": "create_audit_log_entry_api_v1_audit_log_entrys_post",
+        "operationId": "create_audit_log_entry_api_v1_audit_log_entries_post",
         "requestBody": {
           "required": true,
           "content": {
@@ -48,10 +48,10 @@
       },
       "get": {
         "tags": [
-          "audit-log-entrys"
+          "audit-log-entries"
         ],
         "summary": "List Audit Log Entry",
-        "operationId": "list_audit_log_entry_api_v1_audit_log_entrys_get",
+        "operationId": "list_audit_log_entry_api_v1_audit_log_entries_get",
         "parameters": [
           {
             "name": "skip",
@@ -84,7 +84,7 @@
                   "items": {
                     "$ref": "#/components/schemas/AuditLogEntryRead"
                   },
-                  "title": "Response List Audit Log Entry Api V1 Audit Log Entrys Get"
+                  "title": "Response List Audit Log Entry Api V1 Audit Log Entries Get"
                 }
               }
             }
@@ -102,13 +102,13 @@
         }
       }
     },
-    "/api/v1/audit-log-entrys/{item_id}": {
+    "/api/v1/audit-log-entries/{item_id}": {
       "get": {
         "tags": [
-          "audit-log-entrys"
+          "audit-log-entries"
         ],
         "summary": "Get Audit Log Entry",
-        "operationId": "get_audit_log_entry_api_v1_audit_log_entrys__item_id__get",
+        "operationId": "get_audit_log_entry_api_v1_audit_log_entries__item_id__get",
         "parameters": [
           {
             "name": "item_id",
