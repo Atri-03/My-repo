@@ -1,0 +1,36 @@
+@startuml Seq-03-TS-to-Package
+title Sequence 3 — TS Generation, Review Gate 2, SAP Execution Package Publish
+
+participant "Orchestrator Agent" as Orchestrator
+participant "TS Agent" as TSA
+participant "Knowledge Agent" as KA
+participant "Review Agent" as ReviewAgent
+database "PostgreSQL" as PG
+queue "Service Bus" as Bus
+participant "MCP Artefact Server" as MCP
+participant "SAP Execution Service\n(in-repo bounded context)" as SapRepo
+
+Orchestrator -> TSA : generate_ts(FunctionalSpecification[APPROVED], template)
+TSA -> KA : search_documents(architecture/coding/naming/SAP standards, ATC history)
+KA --> TSA : ranked context + citations
+TSA -> PG : insert technical_specification (v1, DRAFT)
+TSA --> Orchestrator : TechnicalSpecification(v1)
+Orchestrator -> PG : workflow_event(-> TS_DRAFTED)
+Orchestrator -> ReviewAgent : open_review(TechnicalSpecification v1, GATE_2_TS)
+ReviewAgent -> PG : insert review_cycle
+Orchestrator -> PG : workflow_event(-> TS_IN_REVIEW)
+
+... review cycle (approve or regenerate, as in Sequence 2) ...
+
+ReviewAgent -> Orchestrator : decision=APPROVE
+Orchestrator -> PG : workflow_event(-> TS_APPROVED)
+Orchestrator -> Orchestrator : build_sap_execution_package(TechnicalSpecification[APPROVED])
+Orchestrator -> PG : insert sap_execution_package (status=VALIDATED)
+Orchestrator -> Bus : publish SapExecutionPackageReady
+Bus -> MCP : consume event
+MCP -> SapRepo : POST execution package (REST, in-repo call)
+SapRepo --> MCP : ack (execution package ref / run id)
+MCP -> PG : update sap_execution_package(status=PUBLISHED, sap_execution_repo_ref)
+Orchestrator -> PG : workflow_event(-> PACKAGE_PUBLISHED -> COMPLETED)
+
+@enduml

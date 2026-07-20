@@ -1,0 +1,205 @@
+# SAP AI Delivery Platform — Phase 2 backend services.
+# Brings up one shared PostgreSQL instance (one database per service) and
+# all 11 FastAPI microservices. Each service also works standalone against
+# SQLite for local development/tests (see each service's app/core/config.py).
+
+x-service-env: &service-env
+  PYTHONUNBUFFERED: "1"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-platform}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-platform}
+      POSTGRES_DB: ${POSTGRES_DB:-platform}
+      POSTGRES_MULTIPLE_DATABASES: >-
+        transcript_service,document_extraction_service,fs_service,ts_service,
+        review_service,approval_service,audit_service,rag_service,
+        user_service,workflow_service,sap_execution_service
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-platform}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  transcript-service:
+    build: ./services/transcript_service
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/transcript_service
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  document-extraction-service:
+    build: ./services/document_extraction_service
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/document_extraction_service
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  fs-service:
+    build: ./services/fs_service
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/fs_service
+    ports:
+      - "8003:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  ts-service:
+    build: ./services/ts_service
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/ts_service
+    ports:
+      - "8004:8004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  review-service:
+    build: ./services/review_service
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/review_service
+    ports:
+      - "8005:8005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  approval-service:
+    build: ./services/approval_service
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/approval_service
+    ports:
+      - "8006:8006"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  audit-service:
+    build: ./services/audit_service
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/audit_service
+    ports:
+      - "8007:8007"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  rag-service:
+    build: ./services/rag_service
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/rag_service
+    ports:
+      - "8008:8008"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  user-service:
+    build: ./services/user_service
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/user_service
+    ports:
+      - "8009:8009"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  workflow-service:
+    build: ./services/workflow_service
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/workflow_service
+    ports:
+      - "8010:8010"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  sap-execution-service:
+    build: ./services/sap_execution_service
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/sap_execution_service
+    ports:
+      - "8100:8100"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  mcp-gateway-service:
+    build: ./services/mcp_gateway_service
+    environment:
+      <<: *service-env
+      TRANSCRIPT_SERVICE_URL: http://transcript-service:8001
+      DOCUMENT_EXTRACTION_SERVICE_URL: http://document-extraction-service:8002
+      FS_SERVICE_URL: http://fs-service:8003
+      TS_SERVICE_URL: http://ts-service:8004
+      REVIEW_SERVICE_URL: http://review-service:8005
+      APPROVAL_SERVICE_URL: http://approval-service:8006
+      AUDIT_SERVICE_URL: http://audit-service:8007
+      RAG_SERVICE_URL: http://rag-service:8008
+      USER_SERVICE_URL: http://user-service:8009
+      WORKFLOW_SERVICE_URL: http://workflow-service:8010
+      SAP_EXECUTION_SERVICE_URL: http://sap-execution-service:8100
+    ports:
+      - "8011:8011"
+    depends_on:
+      - transcript-service
+      - document-extraction-service
+      - fs-service
+      - ts-service
+      - review-service
+      - approval-service
+      - audit-service
+      - rag-service
+      - user-service
+      - workflow-service
+      - sap-execution-service
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_TRANSCRIPT_SERVICE_URL: http://localhost:8001/api/v1
+        VITE_DOCUMENT_EXTRACTION_SERVICE_URL: http://localhost:8002/api/v1
+        VITE_FS_SERVICE_URL: http://localhost:8003/api/v1
+        VITE_TS_SERVICE_URL: http://localhost:8004/api/v1
+        VITE_REVIEW_SERVICE_URL: http://localhost:8005/api/v1
+        VITE_APPROVAL_SERVICE_URL: http://localhost:8006/api/v1
+        VITE_AUDIT_SERVICE_URL: http://localhost:8007/api/v1
+        VITE_RAG_SERVICE_URL: http://localhost:8008/api/v1
+        VITE_USER_SERVICE_URL: http://localhost:8009/api/v1
+        VITE_WORKFLOW_SERVICE_URL: http://localhost:8010/api/v1
+        VITE_MCP_GATEWAY_SERVICE_URL: http://localhost:8011/api/v1
+        VITE_SAP_EXECUTION_SERVICE_URL: http://localhost:8100/api/v1
+    ports:
+      - "5173:80"
+    depends_on:
+      - mcp-gateway-service
+
+volumes:
+  postgres_data:

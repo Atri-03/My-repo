@@ -1,0 +1,32 @@
+@startuml C4-Context
+!include <C4/C4_Context>
+
+title SAP AI Delivery Platform — System Context
+
+Person(business_user, "Business Analyst / SME", "Participates in Teams meetings, uploads BRDs")
+Person(reviewer, "Reviewer / Approver", "Reviews and approves FS/TS artefacts")
+Person(architect, "SAP Architect / Developer", "Uses SAP Execution bounded context to create/activate SAP objects")
+Person(admin, "Platform Admin", "Configures prompts, templates, tenants")
+
+System(platform, "SAP AI Delivery Platform", "Converts transcripts/BRDs into governed FS/TS/SAP Execution Packages, and executes them (in-repo SAP Execution bounded context)")
+
+System_Ext(teams, "Microsoft Teams", "Meeting transcripts, MOM")
+System_Ext(sharepoint, "SharePoint Online", "BRDs, standards, past projects")
+System_Ext(onedrive, "OneDrive", "User-uploaded documents")
+System_Ext(entra, "Microsoft Entra ID", "Authentication & authorization")
+System_Ext(foundry, "Azure AI Foundry (GPT-5.5)", "LLM inference & embeddings")
+System_Ext(search, "Azure AI Search", "Enterprise RAG index")
+
+Rel(business_user, platform, "Uploads BRDs, monitors transcript queue", "HTTPS")
+Rel(reviewer, platform, "Reviews & approves FS/TS", "HTTPS")
+Rel(admin, platform, "Manages prompts, templates, tenants", "HTTPS")
+Rel(platform, teams, "Reads transcripts", "Microsoft Graph API")
+Rel(platform, sharepoint, "Reads/writes documents", "Microsoft Graph API")
+Rel(platform, onedrive, "Reads documents", "Microsoft Graph API")
+Rel(platform, entra, "AuthN/AuthZ", "OIDC/OAuth2")
+Rel(platform, foundry, "Chat completion, embeddings", "HTTPS/REST")
+Rel(platform, search, "Index & hybrid/vector search", "HTTPS/REST")
+Rel(architect, platform, "Executes SAP object creation via SAP Execution bounded context (in-repo)", "HTTPS")
+
+SHOW_LEGEND()
+@enduml

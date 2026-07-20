@@ -1,0 +1,39 @@
+@startuml C4-Component-Agents
+!include <C4/C4_Component>
+
+title SAP AI Delivery Platform — Component Diagram: Agent Runtime
+
+Container_Boundary(orchestrator_boundary, "Orchestrator Agent") {
+  Component(process, "Workflow Process", "Semantic Kernel Process Framework", "State machine: Ingest -> Requirements -> FS -> Gate1 -> TS -> Gate2 -> Package")
+  Component(planner, "Step Router", "Semantic Kernel Planner/Function-calling", "Routes to the correct agent plugin per state")
+}
+
+Container_Boundary(agents_boundary, "Agent Runtime") {
+  Component(transcript_agent, "Transcript Agent", "SK Plugin", "Parses Teams transcripts, MOM, BRD, PDF, DOCX, TXT, HTML")
+  Component(requirement_agent, "Requirement Agent", "SK Plugin", "Extracts FR/NFR, assumptions, dependencies, risks, entities, workflows, business rules")
+  Component(fs_agent, "FS Agent", "SK Plugin", "Generates Functional Specification from templates, supports versioning/regeneration")
+  Component(review_agent, "Review Agent", "SK Plugin", "Manages approvals/rejections/comments, triggers regeneration")
+  Component(ts_agent, "TS Agent", "SK Plugin", "Generates architecture, data model, CDS/RAP/OData design, security, integration design")
+  Component(knowledge_agent, "Knowledge Agent", "SK Plugin", "Enterprise RAG: hybrid/semantic/vector retrieval over Azure AI Search")
+}
+
+Component(kv, "Secret Provider", "Azure Key Vault SDK", "Resolves Foundry/Search/Graph credentials via Managed Identity")
+Component(templates, "Template Store", "PostgreSQL + Blob", "Versioned FS/TS templates")
+Component(mcp_client, "MCP Tool Client", "MCP SDK client", "Calls MCP servers for search/artefact/workflow tools")
+
+Rel(process, planner, "Determines next step")
+Rel(planner, transcript_agent, "Invoke on new transcript")
+Rel(planner, requirement_agent, "Invoke after parsing")
+Rel(planner, fs_agent, "Invoke after requirements approved")
+Rel(planner, review_agent, "Invoke at Gate 1 / Gate 2")
+Rel(planner, ts_agent, "Invoke after FS approved")
+Rel(fs_agent, knowledge_agent, "Retrieve similar past FS / standards")
+Rel(ts_agent, knowledge_agent, "Retrieve architecture/coding standards, ATC history")
+Rel(knowledge_agent, mcp_client, "search_documents tool call")
+Rel(fs_agent, templates, "Load FS template")
+Rel(ts_agent, templates, "Load TS template")
+Rel(transcript_agent, kv, "Resolve Graph credentials")
+Rel(knowledge_agent, kv, "Resolve Search/Foundry credentials")
+
+SHOW_LEGEND()
+@enduml

@@ -1,0 +1,39 @@
+@startuml Seq-01-Ingestion-to-FS
+title Sequence 1 — Transcript Ingestion to Draft FS
+
+actor "Teams / SharePoint" as Source
+participant "Ingestion Worker" as Worker
+queue "Service Bus" as Bus
+participant "Orchestrator Agent" as Orchestrator
+participant "Transcript Agent" as TA
+participant "Requirement Agent" as RA
+participant "Knowledge Agent" as KA
+participant "FS Agent" as FSA
+database "PostgreSQL" as PG
+database "Blob Storage" as Blob
+
+Source -> Worker : Graph webhook / delta query (new transcript)
+Worker -> Blob : store raw transcript
+Worker -> PG : insert source_document, transcript
+Worker -> Bus : publish TranscriptIngested
+Bus -> Orchestrator : consume event
+Orchestrator -> PG : create workflow_run (state=INGESTED)
+Orchestrator -> TA : parse_transcript(transcriptId)
+TA -> PG : update transcript.structured_content
+TA --> Orchestrator : StructuredTranscript
+Orchestrator -> PG : workflow_event(INGESTED -> REQUIREMENTS_EXTRACTED... in progress)
+Orchestrator -> RA : extract_requirements(StructuredTranscript)
+RA -> KA : search_documents(similar past requirements)
+KA --> RA : ranked context + citations
+RA -> PG : insert requirement_set, requirement[]
+RA --> Orchestrator : RequirementSet
+Orchestrator -> PG : workflow_event(-> REQUIREMENTS_EXTRACTED)
+Orchestrator -> FSA : generate_fs(RequirementSet, template)
+FSA -> KA : search_documents(past FS, standards)
+KA --> FSA : ranked context
+FSA -> PG : insert functional_specification (v1, DRAFT)
+FSA -> Blob : store rendered FS document
+FSA --> Orchestrator : FunctionalSpecification(v1)
+Orchestrator -> PG : workflow_event(-> FS_DRAFTED)
+
+@enduml

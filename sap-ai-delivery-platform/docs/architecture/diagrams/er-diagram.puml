@@ -1,0 +1,203 @@
+@startuml ER-Diagram
+title SAP AI Delivery Platform — Entity Relationship Diagram
+!define pk(x) <b>x</b>
+hide methods
+hide stereotypes
+
+entity tenant {
+  pk(id)
+  name
+  entra_tenant_id
+  tier
+  status
+}
+
+entity tenant_config {
+  pk(id)
+  tenant_id (FK)
+  foundry_endpoint
+  foundry_deployment_name
+  auth_method
+  search_service_name
+}
+
+entity project {
+  pk(id)
+  tenant_id (FK)
+  name
+}
+
+entity source_document {
+  pk(id)
+  tenant_id (FK)
+  project_id (FK)
+  source_type
+  origin_uri
+  checksum
+}
+
+entity transcript {
+  pk(id)
+  source_document_id (FK)
+  meeting_date
+  parsed_format
+}
+
+entity requirement_set {
+  pk(id)
+  tenant_id (FK)
+  transcript_id (FK)
+  version
+  status
+}
+
+entity requirement {
+  pk(id)
+  requirement_set_id (FK)
+  type
+  title
+}
+
+entity requirement_risk {
+  pk(id)
+  requirement_set_id (FK)
+  severity
+}
+
+entity requirement_entity {
+  pk(id)
+  requirement_set_id (FK)
+  name
+}
+
+entity business_rule {
+  pk(id)
+  requirement_set_id (FK)
+  rule
+}
+
+entity document_template {
+  pk(id)
+  tenant_id (FK)
+  type
+  version
+}
+
+entity functional_specification {
+  pk(id)
+  tenant_id (FK)
+  requirement_set_id (FK)
+  template_id (FK)
+  parent_version_id (FK)
+  version
+  status
+}
+
+entity technical_specification {
+  pk(id)
+  tenant_id (FK)
+  functional_specification_id (FK)
+  template_id (FK)
+  parent_version_id (FK)
+  version
+  status
+}
+
+entity review_cycle {
+  pk(id)
+  tenant_id (FK)
+  artefact_type
+  artefact_id
+  gate
+  status
+}
+
+entity review_comment {
+  pk(id)
+  review_cycle_id (FK)
+  reviewer_id
+}
+
+entity review_decision {
+  pk(id)
+  review_cycle_id (FK)
+  decision
+}
+
+entity sap_execution_package {
+  pk(id)
+  tenant_id (FK)
+  technical_specification_id (FK)
+  version
+  status
+}
+
+entity workflow_run {
+  pk(id)
+  tenant_id (FK)
+  transcript_id (FK)
+  current_state
+}
+
+entity workflow_event {
+  pk(id)
+  workflow_run_id (FK)
+  to_state
+}
+
+entity audit_log_entry {
+  pk(id)
+  tenant_id (FK)
+  entity_type
+  entity_id
+  action
+}
+
+entity knowledge_source {
+  pk(id)
+  tenant_id (FK)
+  source_type
+  uri
+}
+
+entity knowledge_chunk {
+  pk(id)
+  knowledge_source_id (FK)
+  chunk_index
+  vector_id
+}
+
+entity prompt_template {
+  pk(id)
+  tenant_id (FK)
+  agent_name
+  version
+}
+
+tenant ||--o{ tenant_config
+tenant ||--o{ project
+project ||--o{ source_document
+source_document ||--o| transcript
+transcript ||--o{ requirement_set
+requirement_set ||--o{ requirement
+requirement_set ||--o{ requirement_risk
+requirement_set ||--o{ requirement_entity
+requirement_set ||--o{ business_rule
+requirement_set ||--o{ functional_specification
+document_template ||--o{ functional_specification
+functional_specification ||--o{ technical_specification
+document_template ||--o{ technical_specification
+functional_specification ||--o{ review_cycle
+technical_specification ||--o{ review_cycle
+review_cycle ||--o{ review_comment
+review_cycle ||--o{ review_decision
+technical_specification ||--o{ sap_execution_package
+transcript ||--o{ workflow_run
+workflow_run ||--o{ workflow_event
+tenant ||--o{ audit_log_entry
+tenant ||--o{ knowledge_source
+knowledge_source ||--o{ knowledge_chunk
+tenant ||--o{ prompt_template
+tenant ||--o{ document_template
+
+@enduml
