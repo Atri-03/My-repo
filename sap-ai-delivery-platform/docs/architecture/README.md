@@ -16,6 +16,7 @@ Phase 1 deliverables for the **SAP AI Delivery Platform**.
 | 10 | [Azure Deployment Architecture](10-azure-deployment-architecture.md) | Multi-tenant Azure topology |
 | 11 | [MCP Integration Architecture](11-mcp-integration-architecture.md) | MCP servers/tools exposed to agents and IDEs |
 | 12 | [Sequence Diagrams](12-sequence-diagrams.md) | End-to-end flows |
+| 13 | [Gap Analysis & SAP Execution Bounded Context](13-gap-analysis-and-execution-bounded-context.md) | Repository-wide gap analysis; SAP Execution implemented in-repo (not a separate repository) |
 
 ## Diagram sources
 

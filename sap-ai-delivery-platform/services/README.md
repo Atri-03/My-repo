@@ -1,7 +1,7 @@
 # Backend Services (Phase 2)
 
 This directory contains the production backend for the SAP AI Delivery
-Platform: 11 independently deployable FastAPI microservices, each owning
+Platform: 12 independently deployable FastAPI microservices, each owning
 its own PostgreSQL database (SQLite is used automatically for local
 development and tests).
 
@@ -18,6 +18,7 @@ development and tests).
 | `user_service` | 8009 | Tenants, projects and users. |
 | `workflow_service` | 8010 | Workflow runs and state-transition events. |
 | `mcp_gateway_service` | 8011 | MCP-style HTTP tools proxying to the services above. |
+| `sap_execution_service` | 8100 | SAP Execution bounded context: packages, transports, generated objects (ABAP/RAP/CDS/OData), activation, ATC orchestration + remediation, unit testing, SAP Solution Architect Agent planning. |
 
 ## Architecture
 
@@ -44,6 +45,11 @@ calls (`search_documents`, `get_transcript`, `get_fs`, `get_ts`,
 `get_workflow_state`, `submit_review_decision`, ...) to the other
 services over HTTP, per
 [11-mcp-integration-architecture.md](../docs/architecture/11-mcp-integration-architecture.md).
+Its dynamic SAP Execution MCP tools (`create_package`, `create_transport`,
+`generate_object`/`generate_rap`/`generate_cds`/`generate_odata`,
+`activate_object`, `run_atc`, `remediate_atc_findings`,
+`run_unit_tests`) are backed by `sap_execution_service` — see that
+service's [README](sap_execution_service/README.md).
 
 ## Running locally
 

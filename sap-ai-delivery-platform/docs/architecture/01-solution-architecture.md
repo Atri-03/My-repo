@@ -11,10 +11,16 @@ Transcript → Requirement Extraction → Functional Specification → Review Ga
            → Technical Specification → Review Gate 2 → SAP Execution Package
 ```
 
-This repository does **not** create SAP objects. The SAP Execution Package is
-handed off to an external **SAP Execution Repository** (out of scope here)
-that performs ABAP/CDS/RAP/OData object creation, transport management, and
-ATC checks against a real SAP system.
+This repository owns the full lifecycle end to end, including SAP
+Execution: the SAP Execution Package is handed off to the **SAP Execution
+bounded context** — `services/sap_execution_service` — which is part of
+this repository (not a separate repository) and performs
+ABAP/CDS/RAP/OData object generation, package/transport management, ATC
+orchestration + remediation, unit testing, and activation via the SAP
+Execution MCP tools already exposed by `mcp_gateway_service`. Live
+connectivity to a real SAP system (ADT REST calls) is provided by
+`abap_rag_pipeline` today and is intended to be integrated behind
+`sap_execution_service` rather than duplicated.
 
 ## 1.2 Architectural Drivers
 
@@ -69,8 +75,10 @@ ATC checks against a real SAP system.
 └───────────────────────────────────────────────────────────────────────┘
                          │
 ┌───────────────────────────────────────────────────────────────────────┐
-│  Downstream — SAP Execution Repository (separate repo, out of scope)   │
-│  Consumes: SAP Execution Package (versioned JSON contract)              │
+│  SAP Execution Bounded Context — sap_execution_service (in-repo)       │
+│  Packages/Transports · Generator Orchestrator (ABAP/RAP/CDS/OData)     │
+│  Activation Engine · ATC Orchestration · Remediation Engine            │
+│  SAP Solution Architect Agent (execution planning)                     │
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -105,9 +113,12 @@ ATC checks against a real SAP system.
 - **Traceability**: every artefact (Requirement, FS, TS, Execution Package)
   has an immutable version chain and links back to its source transcript(s)
   and the review decisions that approved it.
-- **Governance**: two mandatory human review gates (post-FS, post-TS); no
-  artefact reaches the SAP Execution Repository without both approvals
-  recorded in the audit ledger.
+- **Governance**: five mandatory human review gates (Gate 1 business
+  approval of FS, Gate 2 architect approval of TS, Gate 3 developer
+  approval of SAP design, Gate 4 developer approval before object
+  creation, Gate 5 lead approval before activation); no artefact is
+  activated in SAP without all applicable gates recorded in the audit
+  ledger (`approval_service`).
 - **Security**: Entra ID (OIDC/OAuth2) for user auth, Managed Identity for
   service-to-service (Key Vault, Azure AI Search, Azure AI Foundry, Storage),
   no credentials in source or config files.

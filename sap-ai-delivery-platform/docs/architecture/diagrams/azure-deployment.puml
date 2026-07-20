@@ -12,9 +12,11 @@ node "Resource Group: rg-sapaidp-shared-<env>" {
     component "Orchestrator Container App\n(Semantic Kernel Process)" as Orchestrator
     component "Agent Runtime Container App(s)" as Agents
     component "MCP Servers Container App" as MCP
+    component "MCP Gateway + SAP Execution Service\nContainer App (in-repo bounded context)" as SapExec
     component "Ingestion Worker Jobs\n(KEDA-scaled on queue depth)" as Workers
   }
   database "Azure Database for PostgreSQL\nFlexible Server (HA, read replica)" as PG
+  database "SAP Execution Database\n(dedicated PostgreSQL schema)" as SapExecPG
   queue "Azure Service Bus\n(topics: ingestion, workflow, regeneration)" as Bus
   component "Azure Web PubSub\n(WebSocket fan-out)" as PubSub
   folder "Azure Blob Storage\n(transcripts, artefacts, execution packages)" as Blob
@@ -34,8 +36,6 @@ node "Resource Group: rg-sapaidp-tenant-<tenantId>\n(DEDICATED tier only)" {
 
 cloud "Microsoft Entra ID" as Entra
 cloud "Microsoft Graph\n(Teams / SharePoint / OneDrive)" as Graph
-cloud "SAP Execution Repository\n(external)" as SapRepo
-
 actor "User" as User
 
 User --> AFD
@@ -58,7 +58,8 @@ Workers --> Search
 Workers --> Blob
 API --> KV : Managed Identity
 Agents --> KV : Managed Identity
-MCP --> SapRepo : publish execution package
+MCP --> SapExec : invoke SAP Execution MCP tools
+SapExec --> SapExecPG
 API --> Monitor
 Orchestrator --> Monitor
 Agents --> Monitor

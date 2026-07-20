@@ -5,10 +5,10 @@ title SAP AI Delivery Platform — System Context
 
 Person(business_user, "Business Analyst / SME", "Participates in Teams meetings, uploads BRDs")
 Person(reviewer, "Reviewer / Approver", "Reviews and approves FS/TS artefacts")
-Person(architect, "SAP Architect / Developer", "Consumes SAP Execution Package downstream")
+Person(architect, "SAP Architect / Developer", "Uses SAP Execution bounded context to create/activate SAP objects")
 Person(admin, "Platform Admin", "Configures prompts, templates, tenants")
 
-System(platform, "SAP AI Delivery Platform", "Converts transcripts/BRDs into governed FS/TS/SAP Execution Packages")
+System(platform, "SAP AI Delivery Platform", "Converts transcripts/BRDs into governed FS/TS/SAP Execution Packages, and executes them (in-repo SAP Execution bounded context)")
 
 System_Ext(teams, "Microsoft Teams", "Meeting transcripts, MOM")
 System_Ext(sharepoint, "SharePoint Online", "BRDs, standards, past projects")
@@ -16,7 +16,6 @@ System_Ext(onedrive, "OneDrive", "User-uploaded documents")
 System_Ext(entra, "Microsoft Entra ID", "Authentication & authorization")
 System_Ext(foundry, "Azure AI Foundry (GPT-5.5)", "LLM inference & embeddings")
 System_Ext(search, "Azure AI Search", "Enterprise RAG index")
-System_Ext(sap_exec_repo, "SAP Execution Repository", "Creates SAP objects (ABAP/CDS/RAP/OData) from Execution Package")
 
 Rel(business_user, platform, "Uploads BRDs, monitors transcript queue", "HTTPS")
 Rel(reviewer, platform, "Reviews & approves FS/TS", "HTTPS")
@@ -27,8 +26,7 @@ Rel(platform, onedrive, "Reads documents", "Microsoft Graph API")
 Rel(platform, entra, "AuthN/AuthZ", "OIDC/OAuth2")
 Rel(platform, foundry, "Chat completion, embeddings", "HTTPS/REST")
 Rel(platform, search, "Index & hybrid/vector search", "HTTPS/REST")
-Rel(platform, sap_exec_repo, "Publishes SAP Execution Package", "REST / repository_dispatch")
-Rel(architect, sap_exec_repo, "Executes SAP object creation", "HTTPS")
+Rel(architect, platform, "Executes SAP object creation via SAP Execution bounded context (in-repo)", "HTTPS")
 
 SHOW_LEGEND()
 @enduml

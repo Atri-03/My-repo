@@ -31,6 +31,7 @@ const monitoredServices: Array<{ service: ServiceName; label: string }> = [
   { service: 'user', label: 'User Service' },
   { service: 'workflow', label: 'Workflow Service' },
   { service: 'mcpGateway', label: 'MCP Gateway Service' },
+  { service: 'sapExecution', label: 'SAP Execution Service' },
 ];
 
 function SummaryCard({ label, queryFn, cardKey }: { label: string; queryFn: () => Promise<unknown[]>; cardKey: string }) {

@@ -44,7 +44,7 @@ ER diagram source: [`diagrams/er-diagram.puml`](diagrams/er-diagram.puml).
 | `document_template` | Versioned FS/TS templates | Low |
 | `functional_specification`, `technical_specification` | Versioned generated specs | High |
 | `review_cycle`, `review_comment`, `review_decision` | Governance/review trail | High |
-| `sap_execution_package` | Handoff artefact to SAP Execution Repository | Medium |
+| `sap_execution_package` | Handoff artefact to the in-repo SAP Execution bounded context | Medium |
 | `workflow_run`, `workflow_event` | Workflow state + append-only transitions | Very high (partitioned) |
 | `audit_log_entry` | Immutable audit ledger | Very high (partitioned) |
 | `knowledge_source`, `knowledge_chunk` | RAG source registry + chunk metadata | Very high |

@@ -2,6 +2,16 @@
 
 The platform is a monorepo rooted at `sap-ai-delivery-platform/`.
 
+> **Note (Phase 2 implementation status)**: this document describes the
+> Phase 1 target-state layout. The Phase 2 implementation currently lives
+> under `services/` (one FastAPI microservice per bounded context — see
+> [services/README.md](../../services/README.md)) plus `frontend/`, rather
+> than the `backend/agents/mcp/shared` split shown below. The SAP Execution
+> bounded context (`services/sap_execution_service`) is implemented
+> **in this repository**, not in a separate repository — see the
+> Architecture Decision in the gap analysis:
+> [13-gap-analysis-and-execution-bounded-context.md](13-gap-analysis-and-execution-bounded-context.md).
+
 ```
 sap-ai-delivery-platform/
 ├── README.md
@@ -66,7 +76,8 @@ sap-ai-delivery-platform/
 ├── shared/                            Cross-cutting shared code (Python + TS)
 │   ├── contracts/                    JSON Schema / Pydantic models for SAP Execution Package,
 │   │                                 Requirement, FS, TS — versioned, consumed by backend, agents,
-│   │                                 frontend (via codegen) and the external SAP Execution Repository
+│   │                                 frontend (via codegen) and the in-repo SAP Execution bounded
+│   │                                 context (services/sap_execution_service)
 │   └── prompts/                      Versioned prompt templates (system/user) per agent
 ├── infra/                             Infrastructure as Code
 │   ├── bicep/                        Azure resource definitions (modular, per environment)
@@ -93,9 +104,10 @@ sap-ai-delivery-platform/
 - **MCP as a first-class boundary**: `mcp/servers/` exposes read/query
   tools (knowledge search, artefact retrieval, workflow state) using the
   Model Context Protocol so that both the platform's own Orchestrator Agent
-  and external IDE-based coding agents (e.g., working in the SAP Execution
-  Repository) can query platform state consistently. See
-  [MCP Integration Architecture](11-mcp-integration-architecture.md).
+  and the in-repo SAP Execution bounded context
+  (`services/sap_execution_service`, invoked via the SAP Execution MCP
+  tools in `mcp_gateway_service`) can query platform state consistently.
+  See [MCP Integration Architecture](11-mcp-integration-architecture.md).
 - **Infra as code**: all Azure resources are declared in `infra/bicep`
   (primary) with environment-specific parameter files
   (`main.dev.bicepparam`, `main.prod.bicepparam`), enabling repeatable

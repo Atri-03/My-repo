@@ -8,7 +8,7 @@ participant "Review Agent" as ReviewAgent
 database "PostgreSQL" as PG
 queue "Service Bus" as Bus
 participant "MCP Artefact Server" as MCP
-actor "SAP Execution Repository" as SapRepo
+participant "SAP Execution Service\n(in-repo bounded context)" as SapRepo
 
 Orchestrator -> TSA : generate_ts(FunctionalSpecification[APPROVED], template)
 TSA -> KA : search_documents(architecture/coding/naming/SAP standards, ATC history)
@@ -28,8 +28,8 @@ Orchestrator -> Orchestrator : build_sap_execution_package(TechnicalSpecificatio
 Orchestrator -> PG : insert sap_execution_package (status=VALIDATED)
 Orchestrator -> Bus : publish SapExecutionPackageReady
 Bus -> MCP : consume event
-MCP -> SapRepo : POST execution package (REST / repository_dispatch)
-SapRepo --> MCP : ack (repo ref / run id)
+MCP -> SapRepo : POST execution package (REST, in-repo call)
+SapRepo --> MCP : ack (execution package ref / run id)
 MCP -> PG : update sap_execution_package(status=PUBLISHED, sap_execution_repo_ref)
 Orchestrator -> PG : workflow_event(-> PACKAGE_PUBLISHED -> COMPLETED)
 

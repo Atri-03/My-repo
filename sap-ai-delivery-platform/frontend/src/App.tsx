@@ -13,6 +13,7 @@ import { AuditDashboardPage } from './pages/AuditDashboardPage';
 import { WorkflowMonitorPage } from './pages/WorkflowMonitorPage';
 import { AgentMonitorPage } from './pages/AgentMonitorPage';
 import { McpMonitorPage } from './pages/McpMonitorPage';
+import { SapExecutionPage } from './pages/SapExecutionPage';
 import { ConfigurationPage } from './pages/ConfigurationPage';
 import { AdministrationPage } from './pages/AdministrationPage';
 
@@ -43,6 +44,7 @@ function App() {
               <Route path="workflow-monitor" element={<WorkflowMonitorPage />} />
               <Route path="agent-monitor" element={<AgentMonitorPage />} />
               <Route path="mcp-monitor" element={<McpMonitorPage />} />
+              <Route path="sap-execution" element={<SapExecutionPage />} />
               <Route path="configuration" element={<ConfigurationPage />} />
               <Route path="administration" element={<AdministrationPage />} />
             </Route>

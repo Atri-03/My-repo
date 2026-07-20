@@ -16,6 +16,7 @@ export const navItems: NavItem[] = [
   { path: '/workflow-monitor', label: 'Workflow Monitor' },
   { path: '/agent-monitor', label: 'Agent Monitor' },
   { path: '/mcp-monitor', label: 'MCP Monitor' },
+  { path: '/sap-execution', label: 'SAP Execution' },
   { path: '/configuration', label: 'Configuration' },
   { path: '/administration', label: 'Administration' },
 ];

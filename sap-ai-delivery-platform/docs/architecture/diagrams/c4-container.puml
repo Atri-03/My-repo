@@ -15,13 +15,15 @@ System_Boundary(platform, "SAP AI Delivery Platform") {
   ContainerDb(blob, "Artefact Store", "Azure Blob Storage", "Raw transcripts, generated DOCX/PDF, execution packages")
   Container(worker, "Ingestion & Indexing Workers", "Python, Azure Functions / Container Apps Jobs", "Graph connectors, embedding generation, index writes")
   ContainerQueue(bus, "Message Bus", "Azure Service Bus", "Ingestion events, workflow events, regeneration requests")
+  Container(mcpgw, "MCP Gateway Service", "FastAPI (Python)", "Dynamic MCP tool registry/discovery; SAP Execution tools")
+  Container(sapexec, "SAP Execution Service", "FastAPI (Python)", "SAP Execution bounded context: packages, transports, generator orchestrator, activation, ATC + remediation, execution plans")
+  ContainerDb(sapexecdb, "SAP Execution Database", "Azure Database for PostgreSQL", "Packages, transports, generated objects, activations, ATC runs/remediations, execution plans")
 }
 
 System_Ext(search, "Azure AI Search", "Hybrid/vector/semantic index")
 System_Ext(foundry, "Azure AI Foundry", "GPT-5.5 chat + embeddings")
 System_Ext(entra, "Microsoft Entra ID", "AuthN/AuthZ")
 System_Ext(graph, "Microsoft Graph", "Teams/SharePoint/OneDrive")
-System_Ext(sap_exec_repo, "SAP Execution Repository")
 
 Rel(user, spa, "Uses", "HTTPS")
 Rel(spa, api, "Calls", "REST/JSON, WebSocket")
@@ -39,8 +41,9 @@ Rel(worker, bus, "Consumes ingestion events", "AMQP")
 Rel(worker, search, "Writes embeddings/index docs", "HTTPS/REST")
 Rel(worker, blob, "Stores raw & derived files", "HTTPS")
 Rel(api, blob, "Reads/writes artefacts", "HTTPS")
-Rel(mcpsrv, sap_exec_repo, "Publishes execution package", "REST/repository_dispatch")
-Rel(api, sap_exec_repo, "Publishes execution package (alt.)", "REST")
+Rel(mcpgw, sapexec, "Invokes SAP Execution tools (package/transport/generate/activate/ATC/remediate/unit-test)", "REST")
+Rel(sapexec, sapexecdb, "Reads/writes", "SQL (asyncpg/SQLAlchemy)")
+Rel(agents, mcpgw, "Invokes MCP tools", "MCP (stdio/SSE)")
 
 SHOW_LEGEND()
 @enduml

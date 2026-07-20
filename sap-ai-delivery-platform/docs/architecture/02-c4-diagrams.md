@@ -10,8 +10,9 @@ Actors: Business Analyst/SME, Reviewer/Approver, SAP Architect/Developer,
 Platform Admin.
 
 External systems: Microsoft Teams, SharePoint Online, OneDrive, Microsoft
-Entra ID, Azure AI Foundry (GPT-5.5), Azure AI Search, and the downstream
-**SAP Execution Repository**.
+Entra ID, Azure AI Foundry (GPT-5.5), and Azure AI Search. The
+**SAP Execution bounded context** (`services/sap_execution_service`) is
+an in-repository component, not an external system.
 
 ```plantuml
 @startuml

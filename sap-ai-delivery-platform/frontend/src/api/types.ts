@@ -141,6 +141,89 @@ export interface SapExecutionPackage {
   published_at?: string | null;
 }
 
+export interface SapPackage {
+  id: string;
+  tenant_id: string;
+  package_name: string;
+  description: string;
+  software_component: string;
+  parent_package?: string | null;
+  transport_request?: string | null;
+  status: string;
+  created_at?: string | null;
+}
+
+export interface SapTransport {
+  id: string;
+  tenant_id: string;
+  transport_request: string;
+  description: string;
+  transport_type: string;
+  target_system?: string | null;
+  owner?: string | null;
+  status: string;
+  released_at?: string | null;
+  created_at?: string | null;
+}
+
+export interface GeneratedObject {
+  id: string;
+  tenant_id: string;
+  object_name: string;
+  object_type: string;
+  package: string;
+  transport_request: string;
+  description?: string | null;
+  source_code?: string | null;
+  extra?: Record<string, unknown> | null;
+  status: string;
+  created_at?: string | null;
+}
+
+export interface Activation {
+  id: string;
+  tenant_id: string;
+  object_name: string;
+  object_type: string;
+  status: string;
+  activated_at?: string | null;
+  created_at?: string | null;
+}
+
+export interface AtcRun {
+  id: string;
+  tenant_id: string;
+  object_name: string;
+  object_type: string;
+  variant: string;
+  status: string;
+  findings: Record<string, unknown>[];
+  created_at?: string | null;
+}
+
+export interface AtcRemediation {
+  id: string;
+  tenant_id: string;
+  object_name: string;
+  object_type: string;
+  finding_ids: string[];
+  auto_apply: boolean;
+  status: string;
+  remediated_at?: string | null;
+  created_at?: string | null;
+}
+
+export interface ExecutionPlan {
+  id: string;
+  tenant_id: string;
+  technical_specification_id: string;
+  package_name?: string | null;
+  transport_description?: string | null;
+  steps: Record<string, unknown>[];
+  status: string;
+  created_at?: string | null;
+}
+
 export interface AuditLogEntry {
   id: string;
   tenant_id: string;

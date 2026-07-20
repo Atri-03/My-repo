@@ -4,7 +4,8 @@ title MCP Integration Architecture
 skinparam componentStyle rectangle
 
 component "Orchestrator Agent /\nAgent Runtime\n(Semantic Kernel, MCP client)" as SKClient
-component "IDE Coding Agents\n(e.g., in SAP Execution Repository)" as IDEAgent
+component "SAP Execution Service\n(in-repo bounded context)" as SapExec
+component "IDE Coding Agents\n(e.g., developer Copilot/IDE)" as IDEAgent
 
 component "Knowledge Search MCP Server" as McpKnowledge {
   [search_documents]
@@ -36,6 +37,8 @@ SKClient --> McpArtefact : MCP (stdio/in-process)
 SKClient --> McpWorkflow : MCP (stdio/in-process)
 IDEAgent --> McpKnowledge : MCP (SSE/HTTP, Entra ID token)
 IDEAgent --> McpArtefact : MCP (SSE/HTTP, Entra ID token)
+SKClient --> SapExec : MCP tools (package/transport/generate/activate/ATC/remediate/unit-test)
+SapExec --> McpArtefact : MCP (SSE/HTTP), looks up approved TS/lineage/standards
 
 McpKnowledge --> Search : query
 McpKnowledge --> PG : lineage metadata

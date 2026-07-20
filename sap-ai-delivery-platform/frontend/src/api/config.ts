@@ -15,6 +15,7 @@ export const serviceBaseUrls = {
   user: import.meta.env.VITE_USER_SERVICE_URL ?? 'http://localhost:8009/api/v1',
   workflow: import.meta.env.VITE_WORKFLOW_SERVICE_URL ?? 'http://localhost:8010/api/v1',
   mcpGateway: import.meta.env.VITE_MCP_GATEWAY_SERVICE_URL ?? 'http://localhost:8011/api/v1',
+  sapExecution: import.meta.env.VITE_SAP_EXECUTION_SERVICE_URL ?? 'http://localhost:8100/api/v1',
 } as const;
 
 export type ServiceName = keyof typeof serviceBaseUrls;

@@ -50,5 +50,5 @@ PlantUML source: [`diagrams/domain-model.puml`](diagrams/domain-model.puml).
 4. `SapExecutionPackage.payload` is a point-in-time immutable snapshot of
    the approved `TechnicalSpecification` plus the originating
    `RequirementSet` and `FunctionalSpecification` references — the
-   downstream SAP Execution Repository never needs to re-query this
+   SAP Execution bounded context never needs to re-query this
    platform to know what was approved.

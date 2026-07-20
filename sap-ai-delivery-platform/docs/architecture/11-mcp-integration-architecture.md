@@ -18,9 +18,9 @@ write) capabilities via the **Model Context Protocol (MCP)** so that:
    integration surface for retrieval, artefact access, and workflow
    state — keeping agent code decoupled from direct database/Search SDK
    calls.
-2. **External IDE-based coding agents** (e.g., an agent working inside the
-   separate **SAP Execution Repository**, or a developer's Copilot/IDE
-   agent) can query this platform's knowledge and artefacts (SSE/HTTP
+2. **External IDE-based coding agents** (e.g., a developer's Copilot/IDE
+   agent, or the in-repo SAP Execution bounded context described in §11.5)
+   can query this platform's knowledge and artefacts (SSE/HTTP
    transport, Entra ID-authenticated) without needing direct database
    access or bespoke API clients.
 
@@ -87,11 +87,17 @@ write) capabilities via the **Model Context Protocol (MCP)** so that:
 }
 ```
 
-## 11.5 Relationship to the SAP Execution Repository
+## 11.5 Relationship to the SAP Execution Bounded Context
 
-The SAP Execution Repository is out of scope for this platform, but the
-MCP Artefact/Knowledge servers are the intended mechanism by which agents
-operating in that repository retrieve the approved Technical Specification,
-lineage, and applicable SAP/architecture standards while generating SAP
-objects — avoiding duplication of the FS/TS content and keeping this
-platform the single source of truth.
+The SAP Execution bounded context (`services/sap_execution_service`) is
+implemented **in this repository**, not a separate repository. The MCP
+Artefact/Knowledge servers remain the mechanism by which SAP Execution
+(and any external IDE-based coding agents) retrieve the approved Technical
+Specification, lineage, and applicable SAP/architecture standards while
+generating SAP objects — avoiding duplication of the FS/TS content and
+keeping this platform the single source of truth. SAP Execution's own
+capabilities (package/transport management, ABAP/RAP/CDS/OData generation,
+activation, ATC orchestration + remediation, unit testing) are exposed as
+MCP tools (§11.2 dynamic registry, category `package-management` /
+`transport-management` / `*-generation` / `activation` / `atc` /
+`unit-testing`) backed by `sap_execution_service`.

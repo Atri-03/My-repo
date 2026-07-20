@@ -17,7 +17,7 @@ services:
       POSTGRES_MULTIPLE_DATABASES: >-
         transcript_service,document_extraction_service,fs_service,ts_service,
         review_service,approval_service,audit_service,rag_service,
-        user_service,workflow_service
+        user_service,workflow_service,sap_execution_service
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infra/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
@@ -139,6 +139,17 @@ services:
       postgres:
         condition: service_healthy
 
+  sap-execution-service:
+    build: ./services/sap_execution_service
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/sap_execution_service
+    ports:
+      - "8100:8100"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   mcp-gateway-service:
     build: ./services/mcp_gateway_service
     environment:
@@ -153,7 +164,7 @@ services:
       RAG_SERVICE_URL: http://rag-service:8008
       USER_SERVICE_URL: http://user-service:8009
       WORKFLOW_SERVICE_URL: http://workflow-service:8010
-      SAP_EXECUTION_SERVICE_URL: ${SAP_EXECUTION_SERVICE_URL:-http://sap-execution-service:8100}
+      SAP_EXECUTION_SERVICE_URL: http://sap-execution-service:8100
     ports:
       - "8011:8011"
     depends_on:
@@ -167,6 +178,7 @@ services:
       - rag-service
       - user-service
       - workflow-service
+      - sap-execution-service
 
   frontend:
     build:
@@ -183,6 +195,7 @@ services:
         VITE_USER_SERVICE_URL: http://localhost:8009/api/v1
         VITE_WORKFLOW_SERVICE_URL: http://localhost:8010/api/v1
         VITE_MCP_GATEWAY_SERVICE_URL: http://localhost:8011/api/v1
+        VITE_SAP_EXECUTION_SERVICE_URL: http://localhost:8100/api/v1
     ports:
       - "5173:80"
     depends_on:

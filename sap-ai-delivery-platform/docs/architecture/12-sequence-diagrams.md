@@ -49,7 +49,9 @@ ATC history; Gate 2 review cycle (following the same approve/regenerate
 pattern as Sequence 2); on approval, the Orchestrator assembles the
 immutable `SapExecutionPackage` snapshot, publishes a
 `SapExecutionPackageReady` event, and the MCP Artefact Server delivers the
-package to the external SAP Execution Repository, recording the
+package to the in-repo SAP Execution bounded context
+(`services/sap_execution_service`, via the SAP Execution MCP tools),
+recording the
 acknowledgement reference before marking the workflow `COMPLETED`.
 
 ## 12.4 Cross-Cutting Notes Applicable to All Sequences
