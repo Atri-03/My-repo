@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     rag_service_url: str = "http://rag-service:8008"
     user_service_url: str = "http://user-service:8009"
     workflow_service_url: str = "http://workflow-service:8010"
+    sap_execution_service_url: str = "http://sap-execution-service:8100"
     request_timeout_seconds: float = 10.0
 
 
