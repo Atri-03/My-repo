@@ -37,6 +37,17 @@ CRUD API endpoints, Dockerfiles, unit + integration tests) plus a root
 details, and [`docs/architecture/openapi/services/`](docs/architecture/openapi/services)
 for the generated OpenAPI schema of every service.
 
+## Phase 3 Status
+
+Phase 3 delivers the production frontend: a React + TypeScript + Fluent UI
+single-page application (`frontend/`) with 13 pages — Dashboard, Transcript
+Queue, Requirement View, FS Review, TS Review, RAG Search, Knowledge
+Explorer, Audit Dashboard, Workflow Monitor, Agent Monitor, MCP Monitor,
+Configuration and Administration — each wired to the Phase 2 backend
+microservices via typed API clients, plus a Vitest/React Testing
+Library/MSW test suite. See [`frontend/README.md`](frontend/README.md) for
+details.
+
 ## Repository Layout
 
 ```

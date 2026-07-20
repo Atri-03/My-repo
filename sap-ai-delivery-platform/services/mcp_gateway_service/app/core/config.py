@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     service_name: str = "mcp_gateway_service"
     api_v1_prefix: str = "/api/v1"
+    cors_origins: str = "*"
     transcript_service_url: str = "http://transcript-service:8001"
     document_extraction_service_url: str = "http://document-extraction-service:8002"
     fs_service_url: str = "http://fs-service:8003"

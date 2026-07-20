@@ -167,5 +167,25 @@ services:
       - user-service
       - workflow-service
 
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_TRANSCRIPT_SERVICE_URL: http://localhost:8001/api/v1
+        VITE_DOCUMENT_EXTRACTION_SERVICE_URL: http://localhost:8002/api/v1
+        VITE_FS_SERVICE_URL: http://localhost:8003/api/v1
+        VITE_TS_SERVICE_URL: http://localhost:8004/api/v1
+        VITE_REVIEW_SERVICE_URL: http://localhost:8005/api/v1
+        VITE_APPROVAL_SERVICE_URL: http://localhost:8006/api/v1
+        VITE_AUDIT_SERVICE_URL: http://localhost:8007/api/v1
+        VITE_RAG_SERVICE_URL: http://localhost:8008/api/v1
+        VITE_USER_SERVICE_URL: http://localhost:8009/api/v1
+        VITE_WORKFLOW_SERVICE_URL: http://localhost:8010/api/v1
+        VITE_MCP_GATEWAY_SERVICE_URL: http://localhost:8011/api/v1
+    ports:
+      - "5173:80"
+    depends_on:
+      - mcp-gateway-service
+
 volumes:
   postgres_data:

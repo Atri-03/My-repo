@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     service_name: str = "review_service"
     api_v1_prefix: str = "/api/v1"
+    cors_origins: str = "*"
     database_url: str = "sqlite:///./review_service.db"
 
 

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     service_name: str = "document_extraction_service"
     api_v1_prefix: str = "/api/v1"
+    cors_origins: str = "*"
     database_url: str = "sqlite:///./document_extraction_service.db"
 
 

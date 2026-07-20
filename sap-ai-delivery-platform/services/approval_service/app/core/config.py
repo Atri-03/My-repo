@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     service_name: str = "approval_service"
     api_v1_prefix: str = "/api/v1"
+    cors_origins: str = "*"
     database_url: str = "sqlite:///./approval_service.db"
 
 
